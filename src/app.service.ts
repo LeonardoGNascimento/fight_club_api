@@ -72,7 +72,7 @@ export class AppService {
       },
     });
 
-    await this.cache.set(`${clienteId}:dashboard-atrasadas`, data);
+    await this.cache.set(`${clienteId}:dashboard-atrasadas`, data, 3600);
 
     return data;
   }
@@ -120,13 +120,13 @@ export class AppService {
 
     const result = resultado._sum.valor ? resultado._sum.valor : 0;
 
-    await this.cache.set(`${clienteId}:dashboard-prejuiso`, result);
+    await this.cache.set(`${clienteId}:dashboard-prejuiso`, result, 3600);
 
     return result;
   }
 
-  async mensalidade(id: string) {
-    const cache = await this.cache.get(`${id}:dashboard-mensalidade`);
+  async mensalidade(clientesId: string) {
+    const cache = await this.cache.get(`${clientesId}:dashboard-mensalidade`);
 
     if (cache) {
       return cache;
@@ -137,32 +137,25 @@ export class AppService {
     const anoAtual = format(dataAtual, 'yyyy');
     const ultimoDia = lastDayOfMonth(dataAtual);
 
-    const valor = await this.prisma.cobrancasClienteItems.findMany({
+    const valor = await this.prisma.cobrancasClienteItems.aggregate({
+      _sum: {
+        valor: true,
+      },
       where: {
         deleted: null,
         CobrancasCliente: {
-          clientesId: String(id),
+          clientesId,
         },
-        AND: [
-          {
-            dataHora: {
-              gte: new Date(`${anoAtual}-${mes}-01`),
-            },
-          },
-          {
-            dataHora: {
-              lt: ultimoDia,
-            },
-          },
-        ],
+        dataHora: {
+          gte: new Date(`${anoAtual}-${mes}-01`),
+          lt: ultimoDia,
+        },
       },
     });
 
-    const result = Number(valor.reduce((acc, item) => acc + item.valor, 0));
+    await this.cache.set(`${clientesId}:dashboard-mensalidade`, valor, 3600);
 
-    await this.cache.set(`${id}:dashboard-mensalidade`, result);
-
-    return result;
+    return valor;
   }
 
   async permissoes(clientesId: string) {
