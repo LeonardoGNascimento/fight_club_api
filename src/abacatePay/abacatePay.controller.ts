@@ -15,7 +15,8 @@ export class AbacatePayController {
   @Post('pix')
   @Public()
   async hookPix(@Body() body: any) {
-    console.log(body);
+    console.log('kind:', body.kind);
+    console.log('prodcut:', body.products);
 
     return true;
   }
