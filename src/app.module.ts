@@ -11,6 +11,7 @@ import { ClerkClientProvider } from './_core/clerkClient.provider';
 import { APP_GUARD } from '@nestjs/core';
 import { ClerkAuthGuard } from './_core/guard/clerk-auth.guard';
 import { AbacatePayModule } from './abacatePay/acabatePay.module';
+import { PrecoModule } from './precos/precos.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AbacatePayModule } from './abacatePay/acabatePay.module';
     AlunosModule,
     AgendaModule,
     AbacatePayModule,
+    PrecoModule,
   ],
   controllers: [AppController],
   providers: [
