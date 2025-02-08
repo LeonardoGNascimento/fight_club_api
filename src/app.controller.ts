@@ -7,14 +7,6 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private service: AppService) {}
 
-  @Get('/dashboard')
-  async dashboard(@CurrentUser() user: User) {
-    return this.service.dashboard(
-      user.privateMetadata.academiaId as string,
-      user.privateMetadata.clienteId as string,
-    );
-  }
-
   @Get('/dashboard/atrasado')
   async dashboardAtrasados(@CurrentUser() user: User) {
     return this.service.atrasadas(user.privateMetadata.clienteId as string);

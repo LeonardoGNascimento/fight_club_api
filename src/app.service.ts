@@ -178,15 +178,4 @@ export class AppService {
       },
     });
   }
-
-  async dashboard(academiaId: string, clienteId: string) {
-    return {
-      proximos: await this.proximos(academiaId),
-      atrasadas: await this.atrasadas(academiaId),
-      lucros: await this.lucro(academiaId),
-      prejuiso: await this.prejuiso(academiaId),
-      mensalidade: await this.mensalidade(clienteId),
-      permissoes: await this.permissoes(clienteId),
-    };
-  }
 }
