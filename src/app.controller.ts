@@ -1,7 +1,8 @@
 import { User } from '@clerk/express';
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Post } from '@nestjs/common';
 import { CurrentUser } from './_core/decorator/currentUser.decorator';
 import { AppService } from './app.service';
+import { Public } from './_core/decorator/public.decorator';
 
 @Controller('')
 export class AppController {
@@ -20,5 +21,11 @@ export class AppController {
   @Get('dashboard/pagamento')
   async dashboardPrejuiso(@CurrentUser() user: User) {
     return this.service.prejuiso(user.privateMetadata.clienteId as string);
+  }
+
+  @Post('/interno/cliente/cobrar')
+  @Public()
+  cobrar() {
+    return this.service.cobrar();
   }
 }

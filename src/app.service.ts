@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from './_core/prisma.service';
-import { format, lastDayOfMonth } from 'date-fns';
+import {
+  differenceInDays,
+  format,
+  getDaysInMonth,
+  lastDayOfMonth,
+} from 'date-fns';
 import { RedisService } from './_core/redis.config';
 
 @Injectable()
@@ -9,6 +14,234 @@ export class AppService {
     private prisma: PrismaService,
     private cache: RedisService,
   ) {}
+
+  async cobrar() {
+    const clientes = await this.prisma.clientes.findMany({
+      where: {
+        deleted: null,
+        desconto: {
+          not: 100,
+        },
+      },
+    });
+
+    const dataAtual = new Date();
+    const mes = format(dataAtual, 'MM');
+    const anoAtual = format(dataAtual, 'yyyy');
+    const ultimoDia = lastDayOfMonth(dataAtual);
+
+    for (const cliente of clientes) {
+      let cobranca = await this.prisma.cobrancasCliente.findFirst({
+        where: {
+          clientesId: cliente.id,
+          deleted: null,
+          AND: [
+            {
+              dataHora: {
+                gte: new Date(`${anoAtual}-${mes}-01`),
+              },
+            },
+            {
+              dataHora: {
+                lt: ultimoDia,
+              },
+            },
+          ],
+        },
+      });
+
+      if (!cobranca) {
+        cobranca = await this.prisma.cobrancasCliente.create({
+          data: {
+            clientesId: cliente.id,
+            vencimento: new Date(),
+            dataHora: new Date(),
+            pago: false,
+          },
+        });
+      }
+
+      const precoAluno = await this.prisma.precos.findFirst({
+        where: {
+          tipo: 'ALUNO',
+        },
+      });
+
+      const precoModalidade = await this.prisma.precos.findFirst({
+        where: {
+          tipo: 'MODALIDADE',
+        },
+      });
+
+      const precoPlano = await this.prisma.precos.findFirst({
+        where: {
+          tipo: 'PLANO',
+        },
+      });
+
+      const modulos = await this.prisma.clienteModulos.findMany({
+        where: {
+          clientesId: cliente.id,
+          dataVencimento: null,
+        },
+      });
+
+      const diasRestantesMes = differenceInDays(ultimoDia, dataAtual);
+      const diasDoMes = getDaysInMonth(dataAtual);
+
+      await Promise.all(
+        modulos.map(async (modulo) => {
+          const jaCobrado = await this.prisma.cobrancasClienteItems.findFirst({
+            where: {
+              cobrancasClienteId: cobranca.id,
+              tipo: modulo.modulo,
+            },
+          });
+
+          if (jaCobrado) {
+            return;
+          }
+
+          const preco = await this.prisma.precos.findFirst({
+            where: {
+              tipo: modulo.modulo,
+            },
+          });
+
+          if (preco) {
+            await this.prisma.cobrancasClienteItems.create({
+              data: {
+                dataHora: new Date(),
+                qtd: 1,
+                valor: (preco.valor / diasDoMes) * diasRestantesMes,
+                cobrancasClienteId: cobranca.id,
+                tipo: modulo.modulo,
+              },
+            });
+          }
+        }),
+      );
+
+      if (precoModalidade) {
+        const qtdModalidadesJaLancados = await this.prisma.cobrancasClienteItems
+          .findMany({
+            where: {
+              cobrancasClienteId: cobranca.id,
+              tipo: 'MODALIDADE',
+              deleted: null,
+            },
+          })
+          .then((itens) =>
+            itens.reduce((prev, curr) => {
+              return prev + curr.qtd;
+            }, 0),
+          );
+
+        const qtdModalidades = await this.prisma.modalidades.count({
+          where: {
+            academia: {
+              clienteId: cliente.id,
+            },
+            deleted: null,
+          },
+        });
+
+        const qtdModalidadesParaLancar =
+          qtdModalidades - qtdModalidadesJaLancados;
+
+        if (qtdModalidadesParaLancar > 0) {
+          await this.prisma.cobrancasClienteItems.create({
+            data: {
+              dataHora: new Date(),
+              qtd: qtdModalidadesParaLancar,
+              valor: qtdModalidadesParaLancar * Number(precoModalidade.valor),
+              cobrancasClienteId: cobranca.id,
+              tipo: 'MODALIDADE',
+            },
+          });
+        }
+      }
+
+      if (precoPlano) {
+        const qtdPlanoJaLancados = await this.prisma.cobrancasClienteItems
+          .findMany({
+            where: {
+              cobrancasClienteId: cobranca.id,
+              tipo: 'PLANO',
+              deleted: null,
+            },
+          })
+          .then((itens) =>
+            itens.reduce((prev, curr) => {
+              return prev + curr.qtd;
+            }, 0),
+          );
+
+        const qtdPlano = await this.prisma.planos.count({
+          where: {
+            academia: {
+              clienteId: cliente.id,
+            },
+            deleted: null,
+          },
+        });
+
+        const qtdParaLancar = qtdPlano - qtdPlanoJaLancados;
+
+        if (qtdParaLancar > 0) {
+          await this.prisma.cobrancasClienteItems.create({
+            data: {
+              dataHora: new Date(),
+              qtd: qtdPlano - qtdPlanoJaLancados,
+              valor: (qtdPlano - qtdPlanoJaLancados) * Number(precoPlano.valor),
+              cobrancasClienteId: cobranca.id,
+              tipo: 'PLANO',
+            },
+          });
+        }
+      }
+
+      if (precoAluno) {
+        const qtdAlunosJaLancados = await this.prisma.cobrancasClienteItems
+          .findMany({
+            where: {
+              cobrancasClienteId: cobranca.id,
+              tipo: 'ALUNO',
+              deleted: null,
+            },
+          })
+          .then((itens) =>
+            itens.reduce((prev, curr) => {
+              return prev + curr.qtd;
+            }, 0),
+          );
+
+        const qtdAlunos = await this.prisma.alunos.count({
+          where: {
+            academia: {
+              clienteId: cliente.id,
+            },
+            deleted: null,
+          },
+        });
+
+        const qtdModalidadesParaLancar = qtdAlunos - qtdAlunosJaLancados;
+
+        if (qtdModalidadesParaLancar > 0) {
+          await this.prisma.cobrancasClienteItems.create({
+            data: {
+              dataHora: new Date(),
+              qtd: qtdAlunos - qtdAlunosJaLancados,
+              valor:
+                (qtdAlunos - qtdAlunosJaLancados) * Number(precoAluno.valor),
+              cobrancasClienteId: cobranca.id,
+              tipo: 'ALUNO',
+            },
+          });
+        }
+      }
+    }
+  }
 
   async proximos(academiaId: string) {
     const now = new Date();
