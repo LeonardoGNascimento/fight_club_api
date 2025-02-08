@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CoreModule } from './_core/core.module';
 import { AcademiasModule } from './academias/academias.module';
@@ -6,6 +6,10 @@ import { AlunosModule } from './alunos/alunos.module';
 import { CobrancaModule } from './cobrancas/cobranca.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AgendaModule } from './agenda/agenda.module';
+import { ClerkClientProvider } from './_core/clerkClient.provider';
+import { APP_GUARD } from '@nestjs/core';
+import { ClerkAuthGuard } from './_core/guard/clerk-auth.guard';
 
 @Module({
   imports: [
@@ -16,8 +20,16 @@ import { AppService } from './app.service';
     CobrancaModule,
     AcademiasModule,
     AlunosModule,
+    AgendaModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    ClerkClientProvider,
+    {
+      provide: APP_GUARD,
+      useClass: ClerkAuthGuard,
+    },
+  ],
 })
 export class AppModule {}

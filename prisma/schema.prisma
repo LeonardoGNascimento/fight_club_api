@@ -19,10 +19,11 @@ model Usuarios {
 }
 
 model Clientes {
-  id      String    @id @default(cuid())
-  nome    String
-  cnpj    String
-  deleted DateTime?
+  id       String    @id @default(cuid())
+  nome     String
+  cnpj     String
+  desconto Int       @default(0)
+  deleted  DateTime?
 
   usuarios         Usuarios[]
   academia         Academias[]
