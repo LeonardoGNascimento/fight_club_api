@@ -10,6 +10,7 @@ import { AgendaModule } from './agenda/agenda.module';
 import { ClerkClientProvider } from './_core/clerkClient.provider';
 import { APP_GUARD } from '@nestjs/core';
 import { ClerkAuthGuard } from './_core/guard/clerk-auth.guard';
+import { AbacatePayModule } from './abacatePay/acabatePay.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ClerkAuthGuard } from './_core/guard/clerk-auth.guard';
     AcademiasModule,
     AlunosModule,
     AgendaModule,
+    AbacatePayModule,
   ],
   controllers: [AppController],
   providers: [
