@@ -46,7 +46,7 @@ export class AbacatePayService {
   async baixa(id: string) {
     await this.prisma.cobrancasCliente.update({
       where: {
-        id,
+        id: id.split(':')[1],
       },
       data: {
         pago: true,
