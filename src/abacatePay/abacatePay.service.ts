@@ -5,7 +5,19 @@ import { PrismaService } from 'src/_core/prisma.service';
 export class AbacatePayService {
   constructor(private prisma: PrismaService) {}
 
-  async gerarPix() {
+  async gerarPix(id: string) {
+    const mensalidade = await this.prisma.cobrancasCliente.findFirst({
+      where: {
+        id,
+      },
+    });
+
+    const preco = await this.prisma.cobrancasClienteItems.findMany({
+      where: {
+        cobrancasClienteId: id,
+      },
+    });
+
     const data = await fetch('https://api.abacatepay.com/v1/billing/create', {
       method: 'POST',
       body: JSON.stringify({
@@ -14,14 +26,14 @@ export class AbacatePayService {
         customerId: 'cust_4RY6zKnpB5bytRjRe31N2k5k',
         products: [
           {
-            externalId: 'cm6vmg0sy0001mk0nedp7dfdb',
+            externalId: `mensalidade:${mensalidade.id}`,
             name: 'Cobrança mensal uso app',
             quantity: 1,
-            price: 100,
+            price: preco.reduce((acc, cur) => acc + cur.valor, 0),
           },
         ],
-        returnUrl: 'https://dojoplanner.com.br',
-        completionUrl: 'https://dojoplanner.com.br',
+        returnUrl: 'https://dojoplanner.legana.com.br/mensalidade',
+        completionUrl: 'https://dojoplanner.legana.com.br/mensalidade',
       }),
       headers: {
         'Content-Type': 'application/json',

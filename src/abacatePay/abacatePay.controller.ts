@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { AbacatePayService } from './abacatePay.service';
 import { Public } from 'src/_core/decorator/public.decorator';
 
@@ -6,10 +6,9 @@ import { Public } from 'src/_core/decorator/public.decorator';
 export class AbacatePayController {
   constructor(private readonly abacatePayService: AbacatePayService) {}
 
-  @Get('pix')
-  @Public()
-  async gerarPix() {
-    return await this.abacatePayService.gerarPix();
+  @Post('pix/cobrar/:id')
+  async gerarPix(@Param('id') id: string) {
+    return await this.abacatePayService.gerarPix(id);
   }
 
   @Post('pix')
