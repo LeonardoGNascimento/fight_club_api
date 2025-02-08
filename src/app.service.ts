@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from './_core/prisma.service';
-import { lastDayOfMonth } from 'date-fns';
+import { format, lastDayOfMonth } from 'date-fns';
+import { RedisService } from './_core/redis.config';
 
 @Injectable()
 export class AppService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cache: RedisService,
+  ) {}
 
   async proximos(academiaId: string) {
     const now = new Date();
@@ -39,8 +43,14 @@ export class AppService {
     });
   }
 
-  async atrasadas(academiaId: string) {
-    return await this.prisma.cobrancas.findMany({
+  async atrasadas(clienteId: string) {
+    const cache = await this.cache.get(`${clienteId}:dashboard-atrasadas`);
+
+    if (cache) {
+      return cache;
+    }
+
+    const data = await this.prisma.cobrancas.findMany({
       include: {
         aluno: {
           include: {
@@ -52,13 +62,19 @@ export class AppService {
         pago: false,
         deleted: null,
         academia: {
-          id: academiaId,
+          cliente: {
+            id: clienteId,
+          },
         },
         vencimento: {
-          lt: new Date(), // 'lt' significa "menor que" (comparando com a data atual)
+          lt: new Date(),
         },
       },
     });
+
+    await this.cache.set(`${clienteId}:dashboard-atrasadas`, data);
+
+    return data;
   }
 
   async lucro(academiaId: string) {
@@ -77,7 +93,13 @@ export class AppService {
     return resultado._sum.valor ? resultado._sum.valor : null;
   }
 
-  async prejuiso(academiaId: string) {
+  async prejuiso(clienteId: string) {
+    const cache = await this.cache.get(`${clienteId}:dashboard-prejuiso`);
+
+    if (cache) {
+      return cache;
+    }
+
     const resultado = await this.prisma.cobrancas.aggregate({
       _sum: {
         valor: true,
@@ -85,29 +107,62 @@ export class AppService {
       where: {
         pago: false,
         academia: {
-          id: academiaId,
+          cliente: {
+            id: clienteId,
+          },
         },
         vencimento: {
-          lt: new Date(), // 'lt' significa "menor que" (comparando com a data atual)
+          lt: new Date(),
         },
         deleted: null,
       },
     });
 
-    return resultado._sum.valor ? resultado._sum.valor : null;
+    const result = resultado._sum.valor ? resultado._sum.valor : 0;
+
+    await this.cache.set(`${clienteId}:dashboard-prejuiso`, result);
+
+    return result;
   }
 
   async mensalidade(id: string) {
+    const cache = await this.cache.get(`${id}:dashboard-mensalidade`);
+
+    if (cache) {
+      return cache;
+    }
+
+    const dataAtual = new Date();
+    const mes = format(dataAtual, 'MM');
+    const anoAtual = format(dataAtual, 'yyyy');
+    const ultimoDia = lastDayOfMonth(dataAtual);
+
     const valor = await this.prisma.cobrancasClienteItems.findMany({
       where: {
         deleted: null,
         CobrancasCliente: {
           clientesId: String(id),
         },
+        AND: [
+          {
+            dataHora: {
+              gte: new Date(`${anoAtual}-${mes}-01`),
+            },
+          },
+          {
+            dataHora: {
+              lt: ultimoDia,
+            },
+          },
+        ],
       },
     });
 
-    return Number(valor.reduce((acc, item) => acc + item.valor, 0));
+    const result = Number(valor.reduce((acc, item) => acc + item.valor, 0));
+
+    await this.cache.set(`${id}:dashboard-mensalidade`, result);
+
+    return result;
   }
 
   async permissoes(clientesId: string) {
