@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/_core/prisma.service';
 
 @Injectable()
 export class AbacatePayService {
+  constructor(private prisma: PrismaService) {}
+
   async gerarPix() {
     const data = await fetch('https://api.abacatepay.com/v1/billing/create', {
       method: 'POST',
@@ -11,7 +14,7 @@ export class AbacatePayService {
         customerId: 'cust_4RY6zKnpB5bytRjRe31N2k5k',
         products: [
           {
-            externalId: '123',
+            externalId: 'cm6vmg0sy0001mk0nedp7dfdb',
             name: 'Cobrança mensal uso app',
             quantity: 1,
             price: 100,
@@ -26,5 +29,16 @@ export class AbacatePayService {
       },
     });
     return await data.json();
+  }
+
+  async baixa(id: string) {
+    await this.prisma.cobrancasCliente.update({
+      where: {
+        id,
+      },
+      data: {
+        pago: true,
+      },
+    });
   }
 }

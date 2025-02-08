@@ -15,9 +15,10 @@ export class AbacatePayController {
   @Post('pix')
   @Public()
   async hookPix(@Body() body: any) {
-    console.log('kind:', body.data.billing.kind);
-    console.log('prodcut:', body.data.billing.products);
+    console.log('prodcut:', body.data.billing.products[0].externalId);
 
-    return true;
+    return await this.abacatePayService.baixa(
+      body.data.billing.products[0].externalId,
+    );
   }
 }
