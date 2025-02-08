@@ -23,7 +23,7 @@ export class AbacatePayService {
       body: JSON.stringify({
         frequency: 'ONE_TIME',
         methods: ['PIX'],
-        customerId: 'cust_4RY6zKnpB5bytRjRe31N2k5k',
+        customerId: 'cust_FzgSPu3DQkYMxEYU54bgLxGX',
         products: [
           {
             externalId: `mensalidade:${mensalidade.id}`,
