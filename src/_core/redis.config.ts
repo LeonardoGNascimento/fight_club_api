@@ -1,42 +1,52 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createClient } from 'redis';
+import { createClient, RedisClientType } from 'redis';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-  private client;
+  private client: RedisClientType;
+  private readonly logger: Logger;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {
+    this.logger = new Logger(RedisService.name);
+  }
 
-  async onModuleInit() {
+  async onModuleInit(): Promise<void> {
     this.client = createClient({
       url: this.configService.get('REDIS_URL'),
     });
 
-    this.client.on('error', (err) => console.error('Redis Error:', err));
+    this.client.on('error', (err: any): void =>
+      this.logger.error('Redis Error:', err),
+    );
 
     await this.client.connect();
-    console.log('✅ Redis conectado com sucesso!');
+    this.logger.log('Redis conectado com sucesso!');
   }
 
-  async set(key: string, value: any, ttl?: number) {
+  async set(key: string, value: any, ttl?: number): Promise<void> {
     await this.client.set(key, JSON.stringify(value));
     if (ttl) {
       await this.client.expire(key, ttl);
     }
   }
 
-  async get(key: string) {
-    const value = await this.client.get(key);
-    return value ? JSON.parse(value) : null;
+  async get<T = any>(key: string): Promise<T> {
+    const value: string = await this.client.get(key);
+    return (value ? JSON.parse(value) : null) as T;
   }
 
-  async del(key: string) {
+  async del(key: string): Promise<void> {
     await this.client.del(key);
   }
 
-  async onModuleDestroy() {
+  async onModuleDestroy(): Promise<void> {
     await this.client.quit();
-    console.log('❌ Redis desconectado');
+    this.logger.log('❌ Redis desconectado');
   }
 }

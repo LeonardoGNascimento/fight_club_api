@@ -3,13 +3,14 @@ import { Controller, Get, Post } from '@nestjs/common';
 import { CurrentUser } from './_core/decorator/currentUser.decorator';
 import { AppService } from './app.service';
 import { Public } from './_core/decorator/public.decorator';
+import { Cobrancas } from '@prisma/client';
 
 @Controller('')
 export class AppController {
   constructor(private service: AppService) {}
 
   @Get('/dashboard/atrasado')
-  async dashboardAtrasados(@CurrentUser() user: User) {
+  async dashboardAtrasados(@CurrentUser() user: User): Promise<Cobrancas[]> {
     return this.service.atrasadas(user.privateMetadata.clienteId as string);
   }
 

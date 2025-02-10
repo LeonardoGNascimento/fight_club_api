@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { addDays, endOfMonth, format } from 'date-fns';
 import { PrismaService } from 'src/_core/prisma.service';
 import { RedisService } from 'src/_core/redis.config';
+import { Agendas } from '@prisma/client';
 
 @Injectable()
 export class AgendaService {
@@ -10,8 +11,10 @@ export class AgendaService {
     private prisma: PrismaService,
   ) {}
 
-  async listar(academiaId: string) {
-    const cacheData = await this.cacheManager.get(`${academiaId}:agenda`);
+  async listar(academiaId: string): Promise<Agendas[]> {
+    const cacheData: Agendas[] = await this.cacheManager.get<Agendas[]>(
+      `${academiaId}:agenda`,
+    );
 
     if (cacheData) {
       return cacheData;
@@ -43,11 +46,11 @@ export class AgendaService {
     return retorno;
   }
 
-  async criar(body: any) {
+  async criar(body: any): Promise<boolean> {
     await this.cacheManager.del(`${body.academiaId}:agenda`);
 
     if (body.id) {
-      const aula = await this.prisma.agendas.update({
+      await this.prisma.agendas.update({
         data: {
           dataInicio: new Date(`${body.data} ${body.inicio}`),
           dataFinal: new Date(`${body.data} ${body.fim}`),
@@ -57,13 +60,13 @@ export class AgendaService {
         },
       });
 
-      return aula;
+      return true;
     }
 
     const dataInicial = new Date(`${body.data} ${body.inicio}`);
-    const dataFinal = endOfMonth(dataInicial);
+    const dataFinal: Date = endOfMonth(dataInicial);
 
-    let dataAula = dataInicial;
+    let dataAula: Date = dataInicial;
 
     const datas = [
       {

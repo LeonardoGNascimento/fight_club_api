@@ -7,6 +7,7 @@ import {
   lastDayOfMonth,
 } from 'date-fns';
 import { RedisService } from './_core/redis.config';
+import { Cobrancas } from '@prisma/client';
 
 @Injectable()
 export class AppService {
@@ -276,8 +277,10 @@ export class AppService {
     });
   }
 
-  async atrasadas(clienteId: string) {
-    const cache = await this.cache.get(`${clienteId}:dashboard-atrasadas`);
+  async atrasadas(clienteId: string): Promise<Cobrancas[]> {
+    const cache = await this.cache.get<Cobrancas[]>(
+      `${clienteId}:dashboard-atrasadas`,
+    );
 
     if (cache) {
       return cache;
