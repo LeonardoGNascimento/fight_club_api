@@ -1,4 +1,5 @@
 import { User, verifyToken } from '@clerk/backend';
+import { JwtPayload } from '@clerk/types';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
@@ -17,20 +18,18 @@ export class ClerkStrategy extends PassportStrategy(Strategy, 'clerk') {
   }
 
   async validate(req: Request): Promise<User> {
-    const token = req.headers.authorization?.split(' ').pop();
+    const token: string = req.headers.authorization?.split(' ').pop();
 
     if (!token) {
       throw new UnauthorizedException('Token not found');
     }
 
     try {
-      const tokenPayload = await verifyToken(token, {
+      const tokenPayload: JwtPayload = await verifyToken(token, {
         secretKey: this.configService.get('CLERK_SECRET_KEY'),
       });
 
-      const user = await this.clerkClient.users.getUser(tokenPayload.sub);
-
-      return user;
+      return await this.clerkClient.users.getUser(tokenPayload.sub);
     } catch (error) {
       throw new UnauthorizedException('Invalid token');
     }

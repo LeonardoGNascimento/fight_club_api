@@ -21,22 +21,18 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       url: this.configService.get('REDIS_URL'),
     });
 
-    this.client.on('error', (err: any): void =>
-      this.logger.error('Redis Error:', err),
-    );
-
     await this.client.connect();
     this.logger.log('Redis conectado com sucesso!');
   }
 
-  async set(key: string, value: any, ttl?: number): Promise<void> {
+  async set<T>(key: string, value: T, ttl?: number): Promise<void> {
     await this.client.set(key, JSON.stringify(value));
     if (ttl) {
       await this.client.expire(key, ttl);
     }
   }
 
-  async get<T = any>(key: string): Promise<T> {
+  async get<T>(key: string): Promise<T> {
     const value: string = await this.client.get(key);
     return (value ? JSON.parse(value) : null) as T;
   }

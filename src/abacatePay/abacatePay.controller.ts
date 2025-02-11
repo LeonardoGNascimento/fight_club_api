@@ -14,8 +14,6 @@ export class AbacatePayController {
   @Post('pix')
   @Public()
   async hookPix(@Body() body: any) {
-    console.log('prodcut:', body.data.billing.products[0].externalId);
-
     return await this.abacatePayService.baixa(
       body.data.billing.products[0].externalId,
     );
