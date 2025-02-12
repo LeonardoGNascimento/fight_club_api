@@ -6,6 +6,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-custom';
 import { Request } from 'express';
 import { ClerkClient } from '@clerk/backend';
+import { async } from '../async';
 
 @Injectable()
 export class ClerkStrategy extends PassportStrategy(Strategy, 'clerk') {
@@ -24,14 +25,16 @@ export class ClerkStrategy extends PassportStrategy(Strategy, 'clerk') {
       throw new UnauthorizedException('Token not found');
     }
 
-    try {
-      const tokenPayload: JwtPayload = await verifyToken(token, {
+    const [tokenPayload, error] = await async<JwtPayload>(
+      verifyToken(token, {
         secretKey: this.configService.get('CLERK_SECRET_KEY'),
-      });
+      }),
+    );
 
-      return await this.clerkClient.users.getUser(tokenPayload.sub);
-    } catch (error) {
-      throw new UnauthorizedException('Invalid token');
+    if (error) {
+      throw new UnauthorizedException('Token not found');
     }
+
+    return await this.clerkClient.users.getUser(tokenPayload.sub);
   }
 }
