@@ -2,7 +2,7 @@ type Result<T> = [T, null] | [null, Error];
 
 export async function async<T = any>(f: any): Promise<Result<T>> {
   try {
-    const result = await f();
+    const result = await f;
 
     return [result, null];
   } catch (error) {
