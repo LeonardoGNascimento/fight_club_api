@@ -8,16 +8,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AlunosService } from './alunos.service';
-import { clerkClient } from '@clerk/express';
+import { clerkClient, User } from '@clerk/express';
+import { CurrentUser } from 'src/_core/decorator/currentUser.decorator';
 
 @Controller('alunos')
 export class AlunosController {
   constructor(private readonly alunosService: AlunosService) {}
 
   @Post()
-  async create(@Body() body: any, @Req() req: any) {
-    const user = await clerkClient.users.getUser(req.auth.userId);
-
+  async create(@CurrentUser() user: User, @Body() body: any, @Req() req: any) {
     return this.alunosService.create({
       ...body,
       academiaId: user.privateMetadata.academiaId,
