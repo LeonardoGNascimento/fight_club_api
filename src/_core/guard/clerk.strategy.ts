@@ -19,28 +19,22 @@ export class ClerkStrategy extends PassportStrategy(Strategy, 'clerk') {
   }
 
   async validate(req: Request): Promise<User> {
-    const token: string = (
-      (req.headers.authorization ?? Array.isArray(req.headers['Authorization']))
-        ? req.headers['Authorization'][0]
-        : req.headers['Authorization']
-    )
-      .split(' ')
-      .pop();
+      const token: string = req.headers.authorization.split(' ').pop();
 
-    if (!token) {
-      throw new UnauthorizedException('Token not found');
-    }
+      if (!token) {
+        throw new UnauthorizedException('Token not found');
+      }
 
-    const [tokenPayload, error] = await async<JwtPayload>(
-      verifyToken(token, {
-        secretKey: this.configService.get('CLERK_SECRET_KEY'),
-      }),
-    );
+      const [tokenPayload, error] = await async<JwtPayload>(
+        verifyToken(token, {
+          secretKey: this.configService.get('CLERK_SECRET_KEY'),
+        }),
+      );
 
-    if (error) {
-      throw new UnauthorizedException('Token not found');
-    }
+      if (error) {
+        throw new UnauthorizedException('Token not found');
+      }
 
-    return await this.clerkClient.users.getUser(tokenPayload.sub);
+      return await this.clerkClient.users.getUser(tokenPayload.sub);
   }
 }
