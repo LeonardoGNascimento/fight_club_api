@@ -37,8 +37,8 @@ export class AlunosController {
     });
   }
 
-  @Get('modalidade/:id')
-  async findAllByModalidade(@Param('id') id: string) {
-    return this.alunosService.getByModalidade(id);
-  }
+  // @Get('modalidade/:id')
+  // async findAllByModalidade(@Param('id') id: string) {
+  //   return this.alunosService.getByModalidade(id);
+  // }
 }
