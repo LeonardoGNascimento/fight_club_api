@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   Req,
@@ -25,12 +26,19 @@ export class AlunosController {
   }
 
   @Get()
-  async findAll(@Query() query: any, @Req() req: any) {
-    const user = await clerkClient.users.getUser(req.auth.userId);
-
+  async findAll(
+    @CurrentUser() user: User,
+    @Query() query: any,
+    @Req() req: any,
+  ) {
     return this.alunosService.findAll({
       query,
       academiaId: user.privateMetadata.academiaId,
     });
+  }
+
+  @Get('modalidade/:id')
+  async findAllByModalidade(@Param('id') id: string) {
+    return this.alunosService.getByModalidade(id);
   }
 }

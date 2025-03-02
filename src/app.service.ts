@@ -278,13 +278,13 @@ export class AppService {
   }
 
   async atrasadas(clienteId: string): Promise<Cobrancas[]> {
-    const cache = await this.cache.get<Cobrancas[]>(
-      `${clienteId}:dashboard-atrasadas`,
-    );
+    // const cache = await this.cache.get<Cobrancas[]>(
+    //   `${clienteId}:dashboard-atrasadas`,
+    // );
 
-    if (cache) {
-      return cache;
-    }
+    // if (cache) {
+    //   return cache;
+    // }
 
     const data = await this.prisma.cobrancas.findMany({
       include: {
@@ -308,7 +308,7 @@ export class AppService {
       },
     });
 
-    await this.cache.set(`${clienteId}:dashboard-atrasadas`, data, 3600);
+    // await this.cache.set(`${clienteId}:dashboard-atrasadas`, data, 3600);
 
     return data;
   }
@@ -330,11 +330,11 @@ export class AppService {
   }
 
   async prejuiso(clienteId: string) {
-    const cache = await this.cache.get(`${clienteId}:dashboard-prejuiso`);
+    // const cache = await this.cache.get(`${clienteId}:dashboard-prejuiso`);
 
-    if (cache) {
-      return cache;
-    }
+    // if (cache) {
+    //   return cache;
+    // }
 
     const resultado = await this.prisma.cobrancas.aggregate({
       _sum: {
@@ -356,17 +356,17 @@ export class AppService {
 
     const result = resultado._sum.valor ? resultado._sum.valor : 0;
 
-    await this.cache.set(`${clienteId}:dashboard-prejuiso`, result, 3600);
+    // await this.cache.set(`${clienteId}:dashboard-prejuiso`, result, 3600);
 
     return result;
   }
 
   async mensalidade(clientesId: string) {
-    const cache = await this.cache.get(`${clientesId}:dashboard-mensalidade`);
+    // const cache = await this.cache.get(`${clientesId}:dashboard-mensalidade`);
 
-    if (cache) {
-      return cache;
-    }
+    // if (cache) {
+    //   return cache;
+    // }
 
     const dataAtual = new Date();
     const mes = format(dataAtual, 'MM');
@@ -388,10 +388,10 @@ export class AppService {
         },
       },
     });
+    
+    // await this.cache.set(`${clientesId}:dashboard-mensalidade`, valor['_sum'].valor, 3600);
 
-    await this.cache.set(`${clientesId}:dashboard-mensalidade`, valor, 3600);
-
-    return valor;
+    return valor['_sum'].valor ?? 0;
   }
 
   async permissoes(clientesId: string) {
