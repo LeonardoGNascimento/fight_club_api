@@ -90,6 +90,7 @@ model Alunos {
   alunosExamesGraducoes AlunosExamesGraducao[]
   alunosGraducoes       AlunosGraducao[]
   cobrancas             Cobrancas[]
+  Chamada               Chamada[]
 }
 
 model AlunosGraducao {
@@ -98,7 +99,9 @@ model AlunosGraducao {
   graduacoesId  String?
   modalidadesId String
   deleted       DateTime?
+  turmasId      String?
 
+  Turmas     Turmas?     @relation(fields: [turmasId], references: [id])
   graduacao  Graduacoes? @relation(fields: [graduacoesId], references: [id])
   modalidade Modalidades @relation(fields: [modalidadesId], references: [id])
   aluno      Alunos      @relation(fields: [alunosId], references: [id])
@@ -149,6 +152,7 @@ model Modalidades {
   examesGraduacoes ExamesGraduacao[]
   graduacoes       Graduacoes[]
   alunosGraducoes  AlunosGraducao[]
+  Turmas           Turmas[]
 }
 
 model Graduacoes {
@@ -182,6 +186,7 @@ model Agendas {
   academia    Academias    @relation(fields: [academiasId], references: [id])
   modalidade  Modalidades  @relation(fields: [modalidadesId], references: [id])
   professores Professores? @relation(fields: [professorId], references: [id])
+  Chamada     Chamada[]
 }
 
 model ExamesGraduacao {
@@ -253,10 +258,53 @@ model CobrancasClienteItems {
 }
 
 model Professores {
-  id         String @id @default(cuid())
-  nome       String
-  academiaId String
+  id                  String    @id @default(cuid())
+  dataHora            DateTime  @default(now())
+  nome                String
+  cpf                 String    @unique
+  rg                  String
+  endereco            String
+  numero              String
+  complemento         String?
+  bairro              String
+  cep                 String
+  estado              String
+  cidade              String
+  email               String    @unique
+  telefone            String
+  telefoneResidencial String?
+  nascimento          DateTime
+  academiaId          String
+  status              Status    @default(ATIVO)
+  deleted             DateTime?
 
   agenda   Agendas[]
   academia Academias @relation(fields: [academiaId], references: [id])
+}
+
+model Admin {
+  id       String  @id @default(uuid())
+  email    String  @unique
+  password String
+  name     String?
+}
+
+model Chamada {
+  id        String   @id @default(cuid())
+  dataHora  DateTime @default(now())
+  agendasId String
+  alunosId  String
+
+  aluno  Alunos  @relation(fields: [alunosId], references: [id])
+  agenda Agendas @relation(fields: [agendasId], references: [id])
+}
+
+model Turmas {
+  id            String   @id @default(cuid())
+  dataHora      DateTime @default(now())
+  nome          String
+  modalidadesId String
+
+  modalidade     Modalidades      @relation(fields: [modalidadesId], references: [id])
+  AlunosGraducao AlunosGraducao[]
 }

@@ -1,16 +1,17 @@
+import { User } from '@clerk/express';
 import {
   Body,
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Query,
-  Req,
-  UseGuards,
+  Req
 } from '@nestjs/common';
-import { AlunosService } from './alunos.service';
-import { clerkClient, User } from '@clerk/express';
 import { CurrentUser } from 'src/_core/decorator/currentUser.decorator';
+import { AlunosService } from './alunos.service';
+import { AtualizarGraduacaoDto } from './dto/atualizarGraducao.dto';
 
 @Controller('alunos')
 export class AlunosController {
@@ -35,6 +36,11 @@ export class AlunosController {
       query,
       academiaId: user.privateMetadata.academiaId,
     });
+  }
+
+  @Patch('/:id/modalidade/:modalidadeId/graduacao/:graduacaoId')
+  atualizarGraduacao(@Param() atualizarGraduacaoDto: AtualizarGraduacaoDto) {
+    return this.alunosService.atualizarGraduacao(atualizarGraduacaoDto);
   }
 
   // @Get('modalidade/:id')

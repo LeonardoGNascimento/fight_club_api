@@ -1,7 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/_core/prisma.service';
-import { CreateAlunoDto } from './dto/createAluno.dto';
 import { CobrancaService } from 'src/cobrancas/cobranca.service';
+import { AtualizarGraduacaoDto } from './dto/atualizarGraducao.dto';
+import { CreateAlunoDto } from './dto/createAluno.dto';
 
 @Injectable()
 export class AlunosService {
@@ -9,6 +14,30 @@ export class AlunosService {
     private prisma: PrismaService,
     private cobrancaService: CobrancaService,
   ) {}
+
+  async atualizarGraduacao(atualizarGraduacaoDto: AtualizarGraduacaoDto) {
+    const alunoModalidade = await this.prisma.alunosGraducao.findFirst({
+      where: {
+        alunosId: atualizarGraduacaoDto.id,
+        modalidadesId: atualizarGraduacaoDto.modalidadeId,
+      },
+    });
+
+    if (!alunoModalidade) {
+      throw new BadRequestException('Aluno não treina essa modalidade');
+    }
+
+    await this.prisma.alunosGraducao.update({
+      data: {
+        graduacoesId: atualizarGraduacaoDto.graduacaoId,
+      },
+      where: {
+        id: alunoModalidade.id,
+      },
+    });
+
+    return true;
+  }
 
   async create({ academiaId, clienteId, ...body }: CreateAlunoDto) {
     const plano = await this.prisma.planos.findFirst({
@@ -124,5 +153,13 @@ export class AlunosService {
     });
 
     return retorno;
+  }
+
+  async getByModalidade(id: string) {
+    const result = await this.prisma.alunosGraducao.findMany({
+      where: {
+        modalidadesId: id,
+      },
+    });
   }
 }
