@@ -78,7 +78,7 @@ export class AlunosService {
             },
           });
 
-          let data: any = {
+          const data: any = {
             alunosId: aluno.id,
             modalidadesId: item,
             graduacoesId: null,
