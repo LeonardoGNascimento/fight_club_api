@@ -254,7 +254,9 @@ export class AppService {
         modalidade: true,
       },
       where: {
-        academiasId: academiaId,
+        academia: {
+          clienteId: academiaId,
+        },
         dataInicio: {
           gte: startOfDay,
           lte: endOfDay,

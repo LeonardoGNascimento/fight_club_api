@@ -24,6 +24,11 @@ export class AppController {
     return this.service.prejuiso(user.privateMetadata.clienteId as string);
   }
 
+  @Get('dashboard/eventos')
+  dashboardEventos(@CurrentUser() user: User) {
+    return this.service.proximos(user.privateMetadata.clienteId as string);
+  }
+
   @Post('/interno/cliente/cobrar')
   @Public()
   cobrar() {
