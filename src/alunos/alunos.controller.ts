@@ -38,8 +38,13 @@ export class AlunosController {
     });
   }
 
+  @Get(':id')
+  buscar(@Param('id') id: string) {
+    return this.alunosService.buscar(id);
+  }
+
   @Get('contagem')
-  async contagem(@CurrentUser() user: User) {
+  contagem(@CurrentUser() user: User) {
     return this.alunosService.contagem(
       user.privateMetadata.clienteId as string,
       user.privateMetadata.academiaId as string,

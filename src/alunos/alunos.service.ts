@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { format, lastDayOfMonth } from 'date-fns';
@@ -16,6 +17,36 @@ export class AlunosService {
     private prisma: PrismaService,
     private cobrancaService: CobrancaService,
   ) {}
+
+  async buscar(id: string) {
+    try {
+      const aluno = await this.prisma.alunos.findUnique({
+        include: {
+          alunosGraducoes: {
+            include: {
+              modalidade: true,
+            },
+          },
+          plano: true,
+        },
+        where: {
+          id,
+          deleted: null,
+        },
+      });
+
+      if (!aluno) {
+        throw new NotFoundException('Aluno não encontrado');
+      }
+
+      return aluno;
+    } catch (error: any) {
+      throw new InternalServerErrorException({
+        error: 'Erro ao buscar o aluno',
+        details: error.message,
+      });
+    }
+  }
 
   async contagem(clientesId: string, academiaId: string) {
     const dataAtual = new Date();
