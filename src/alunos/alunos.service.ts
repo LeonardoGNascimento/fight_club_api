@@ -3,10 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { format, lastDayOfMonth } from 'date-fns';
 import { PrismaService } from 'src/_core/prisma.service';
 import { CobrancaService } from 'src/cobrancas/cobranca.service';
 import { AtualizarGraduacaoDto } from './dto/atualizarGraducao.dto';
 import { CreateAlunoDto } from './dto/createAluno.dto';
+import { ListarAlunosDto } from './dto/listarAlunos.dto';
 
 @Injectable()
 export class AlunosService {
@@ -14,6 +16,49 @@ export class AlunosService {
     private prisma: PrismaService,
     private cobrancaService: CobrancaService,
   ) {}
+
+  async contagem(clientesId: string, academiaId: string) {
+    const dataAtual = new Date();
+    const mes = format(dataAtual, 'MM');
+    const anoAtual = format(dataAtual, 'yyyy');
+    const ultimoDia = lastDayOfMonth(dataAtual);
+
+    const alunos = await this.prisma.cobrancasClienteItems.findMany({
+      where: {
+        CobrancasCliente: {
+          clientesId,
+          AND: [
+            {
+              dataHora: {
+                gte: new Date(`${anoAtual}-${mes}-01`),
+              },
+            },
+            {
+              dataHora: {
+                lt: ultimoDia,
+              },
+            },
+          ],
+        },
+
+        tipo: 'ALUNO',
+      },
+    });
+
+    const alunosAtivos = await this.prisma.alunos.count({
+      where: {
+        academiaId,
+        deleted: null,
+      },
+    });
+
+    return {
+      alunosPagos: alunos.reduce((prev, actual) => {
+        return prev + actual.qtd;
+      }, 0),
+      alunosAtivos,
+    };
+  }
 
   async atualizarGraduacao(atualizarGraduacaoDto: AtualizarGraduacaoDto) {
     const alunoModalidade = await this.prisma.alunosGraducao.findFirst({
@@ -39,7 +84,7 @@ export class AlunosService {
     return true;
   }
 
-  async create({ academiaId, clienteId, ...body }: CreateAlunoDto) {
+  async create({ academiaId, clienteId, user, ...body }: CreateAlunoDto) {
     const plano = await this.prisma.planos.findFirst({
       where: {
         id: body.plano,
@@ -48,12 +93,17 @@ export class AlunosService {
     });
 
     if (!plano) {
-      throw new NotFoundException('Plano não encontrado');
+      throw new NotFoundException({ error: 'Plano não encontrado' });
     }
+
+    const contagem = await this.contagem(
+      user.privateMetadata.clienteId as string,
+      user.privateMetadata.academiaId as string,
+    );
 
     const aluno = await this.prisma.alunos.create({
       data: {
-        academiaId: academiaId,
+        academiaId: String(user.privateMetadata.academiaId),
         nome: body.nome,
         cep: body.cep,
         cidade: body.cidade,
@@ -99,21 +149,23 @@ export class AlunosService {
       await this.cobrancaService.lancarCobrancasPorAluno(aluno.id);
     }
 
-    await this.cobrancaService.lancarValor({
-      clientesId: clienteId,
-      tipo: 'ALUNO',
-    });
+    if (contagem.alunosAtivos === contagem.alunosPagos) {
+      await this.cobrancaService.lancarValor({
+        clientesId: user.privateMetadata.clienteId as string,
+        tipo: 'ALUNO',
+      });
+    }
 
     return aluno;
   }
 
-  async findAll({ query, academiaId }: any) {
+  async findAll({ query, academiaId }: ListarAlunosDto) {
     const modalidade = query.modalidade;
     const plano = query.plano;
     const status = query.status;
 
     const whereClause: any = {
-      academiaId: academiaId,
+      academiaId,
       deleted: null,
     };
 
@@ -145,14 +197,12 @@ export class AlunosService {
       where: whereClause,
     });
 
-    const retorno = alunos.map((item) => {
+    return alunos.map((item) => {
       return {
         ...item,
         modalidades: item.alunosGraducoes.map((item2) => item2.modalidade.nome),
       };
     });
-
-    return retorno;
   }
 
   async getByModalidade(id: string) {

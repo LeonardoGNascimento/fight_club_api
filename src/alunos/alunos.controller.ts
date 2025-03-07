@@ -7,11 +7,12 @@ import {
   Patch,
   Post,
   Query,
-  Req
+  Req,
 } from '@nestjs/common';
 import { CurrentUser } from 'src/_core/decorator/currentUser.decorator';
 import { AlunosService } from './alunos.service';
 import { AtualizarGraduacaoDto } from './dto/atualizarGraducao.dto';
+import { ListarAlunosQueryDto } from './dto/listarAlunos.dto';
 
 @Controller('alunos')
 export class AlunosController {
@@ -29,13 +30,20 @@ export class AlunosController {
   @Get()
   async findAll(
     @CurrentUser() user: User,
-    @Query() query: any,
-    @Req() req: any,
+    @Query() query: ListarAlunosQueryDto,
   ) {
     return this.alunosService.findAll({
       query,
-      academiaId: user.privateMetadata.academiaId,
+      academiaId: user.privateMetadata.academiaId as string,
     });
+  }
+
+  @Get('contagem')
+  async contagem(@CurrentUser() user: User) {
+    return this.alunosService.contagem(
+      user.privateMetadata.clienteId as string,
+      user.privateMetadata.academiaId as string,
+    );
   }
 
   @Patch('/:id/modalidade/:modalidadeId/graduacao/:graduacaoId')

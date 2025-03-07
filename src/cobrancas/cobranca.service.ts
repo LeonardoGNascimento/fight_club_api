@@ -56,6 +56,18 @@ export class CobrancaService {
     const diasRestantesMes = differenceInDays(ultimoDia, dataAtual);
     const diasDoMes = getDaysInMonth(dataAtual);
 
+    const cliente = await this.prisma.clientes.findFirst({
+      where: { id: clientesId },
+    });
+
+    if (!cliente) {
+      return;
+    }
+
+    if (cliente.desconto >= 100) {
+      return;
+    }
+
     let cobranca = await this.prisma.cobrancasCliente.findFirst({
       where: {
         clientesId,

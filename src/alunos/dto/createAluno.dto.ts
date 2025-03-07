@@ -1,3 +1,5 @@
+import { User } from "@clerk/backend";
+
 export interface CreateAlunoDto {
   nome: string;
   cpf: string;
@@ -11,4 +13,5 @@ export interface CreateAlunoDto {
   telefone: string;
   academiaId: string;
   clienteId: string;
+  user: User,
 }
