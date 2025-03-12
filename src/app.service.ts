@@ -11,10 +11,7 @@ import { Cobrancas } from '@prisma/client';
 
 @Injectable()
 export class AppService {
-  constructor(
-    private prisma: PrismaService,
-    private cache: RedisService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async cobrar() {
     const clientes = await this.prisma.clientes.findMany({
@@ -390,7 +387,7 @@ export class AppService {
         },
       },
     });
-    
+
     // await this.cache.set(`${clientesId}:dashboard-mensalidade`, valor['_sum'].valor, 3600);
 
     return valor['_sum'].valor ?? 0;

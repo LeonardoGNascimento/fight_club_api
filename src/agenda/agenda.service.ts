@@ -7,18 +7,17 @@ import { Agendas } from '@prisma/client';
 @Injectable()
 export class AgendaService {
   constructor(
-    private cacheManager: RedisService,
     private prisma: PrismaService,
   ) {}
 
   async listar(academiaId: string): Promise<Agendas[]> {
-    const cacheData: Agendas[] = await this.cacheManager.get<Agendas[]>(
-      `${academiaId}:agenda`,
-    );
+    // const cacheData: Agendas[] = await this.cacheManager.get<Agendas[]>(
+    //   `${academiaId}:agenda`,
+    // );
 
-    if (cacheData) {
-      return cacheData;
-    }
+    // if (cacheData) {
+    //   // return cacheData;
+    // }
 
     const aulas = await this.prisma.agendas.findMany({
       include: {
@@ -41,13 +40,46 @@ export class AgendaService {
       };
     });
 
-    await this.cacheManager.set(`${academiaId}:agenda`, retorno, 100000);
+    // await this.cacheManager.set(`${academiaId}:agenda`, retorno, 100000);
 
     return retorno;
   }
 
+  async detalhes(id: string) {
+    const aula = await this.prisma.agendas.findFirst({
+      include: {
+        Chamada: {
+          include: {
+            aluno: true,
+          },
+        },
+        modalidade: {
+          include: {
+            graduacoes: true,
+          },
+        },
+      },
+      where: {
+        id,
+        deleted: null,
+      },
+    });
+
+    const alunos = await this.prisma.alunosGraducao.findMany({
+      include: {
+        aluno: true,
+        graduacao: true,
+      },
+      where: {
+        modalidadesId: aula.modalidadesId,
+      },
+    });
+
+    return { aula, alunos };
+  }
+
   async criar(body: any): Promise<boolean> {
-    await this.cacheManager.del(`${body.academiaId}:agenda`);
+    // await this.cacheManager.del(`${body.academiaId}:agenda`);
 
     if (body.id) {
       await this.prisma.agendas.update({
