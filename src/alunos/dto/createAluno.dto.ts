@@ -1,4 +1,4 @@
-import { User } from "@clerk/backend";
+import { User } from "src/_core/interfaces/user.interface";
 
 export interface CreateAlunoDto {
   nome: string;

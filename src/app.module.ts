@@ -12,6 +12,7 @@ import { ClerkAuthGuard } from "./_core/guard/clerk-auth.guard";
 import { AbacatePayModule } from "./abacatePay/acabatePay.module";
 import { PrecoModule } from "./precos/precos.module";
 import { GraduacaoModule } from "./graduacao/graduacao.module";
+import { JwtAuthGuard } from "./_core/guard/jwt-auth.guard";
 
 @Module({
   imports: [
@@ -32,7 +33,7 @@ import { GraduacaoModule } from "./graduacao/graduacao.module";
     ClerkClientProvider,
     {
       provide: APP_GUARD,
-      useClass: ClerkAuthGuard,
+      useClass: JwtAuthGuard,
     },
   ],
 })

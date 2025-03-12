@@ -1,4 +1,3 @@
-import { User } from '@clerk/express';
 import {
   Body,
   Controller,
@@ -9,40 +8,40 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
-import { CurrentUser } from 'src/_core/decorator/currentUser.decorator';
 import { AlunosService } from './alunos.service';
 import { AtualizarGraduacaoDto } from './dto/atualizarGraducao.dto';
 import { ListarAlunosQueryDto } from './dto/listarAlunos.dto';
+import { User } from 'src/_core/interfaces/user.interface';
 
 @Controller('alunos')
 export class AlunosController {
   constructor(private readonly alunosService: AlunosService) {}
 
   @Post()
-  async create(@CurrentUser() user: User, @Body() body: any, @Req() req: any) {
+  async create(@Body() body: any, @Req() req) {
     return this.alunosService.create({
       ...body,
-      academiaId: user.privateMetadata.academiaId,
-      clienteId: user.privateMetadata.clienteId,
+      academiaId: req.user.academiaId,
+      clienteId: req.user.clienteId,
     });
   }
 
   @Get()
   async findAll(
-    @CurrentUser() user: User,
+    @Req() req,
     @Query() query: ListarAlunosQueryDto,
   ) {
     return this.alunosService.findAll({
       query,
-      academiaId: user.privateMetadata.academiaId as string,
+      academiaId: req.user.academiaId,
     });
   }
 
   @Get('contagem')
-  contagem(@CurrentUser() user: User) {
+  contagem(@Req() req) {
     return this.alunosService.contagem(
-      user.privateMetadata.clienteId as string,
-      user.privateMetadata.academiaId as string,
+      req.user.clienteId,
+      req.user.academiaId,
     );
   }
 
