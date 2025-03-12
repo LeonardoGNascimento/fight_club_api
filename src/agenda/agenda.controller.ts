@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
 import { AgendaService } from './agenda.service';
 import { Agendas } from '@prisma/client';
 
@@ -9,6 +9,10 @@ export class AgendaController {
   @Get()
   async listar(@Req() req): Promise<Agendas[]> {
     return await this.service.listar(req.user.academiaId);
+  }
+  @Get(':id')
+  detalhes(@Param('id') id: string) {
+    return this.service.detalhes(id);
   }
 
   @Post()

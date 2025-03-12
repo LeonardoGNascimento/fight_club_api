@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { format, lastDayOfMonth } from 'date-fns';
@@ -10,73 +9,61 @@ import { CobrancaService } from 'src/cobrancas/cobranca.service';
 import { AtualizarGraduacaoDto } from './dto/atualizarGraducao.dto';
 import { CreateAlunoDto } from './dto/createAluno.dto';
 import { ListarAlunosDto } from './dto/listarAlunos.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Alunos } from '../_core/entity/alunos.entity';
+import { Repository } from 'typeorm';
+import { CobrancasClienteItems } from '../_core/entity/cobrancas-cliente-items.entity';
+import { CobrancasClienteItemsTipo } from '../_core/entity/cobrancas-cliente-items-tipo.enum';
+import { async } from 'src/_core/async';
 
 @Injectable()
 export class AlunosService {
   constructor(
     private prisma: PrismaService,
     private cobrancaService: CobrancaService,
-  ) {}
-
-  async buscar(id: string) {
-    try {
-      const aluno = await this.prisma.alunos.findUnique({
-        include: {
-          alunosGraducoes: {
-            include: {
-              modalidade: true,
-            },
-          },
-          plano: true,
-        },
-        where: {
-          id,
-          deleted: null,
-        },
-      });
-
-      if (!aluno) {
-        throw new NotFoundException('Aluno não encontrado');
-      }
-
-      return aluno;
-    } catch (error: any) {
-      throw new InternalServerErrorException({
-        error: 'Erro ao buscar o aluno',
-        details: error.message,
-      });
-    }
+    @InjectRepository(Alunos) private alunosRepository: Repository<Alunos>,
+    @InjectRepository(CobrancasClienteItems) private cobrancaClienteItemRepository: Repository<CobrancasClienteItems>,
+  ) {
   }
 
-  async contagem(clientesId: string, academiaId: string) {
-    const dataAtual = new Date();
-    const mes = format(dataAtual, 'MM');
-    const anoAtual = format(dataAtual, 'yyyy');
-    const ultimoDia = lastDayOfMonth(dataAtual);
-
-    const alunos = await this.prisma.cobrancasClienteItems.findMany({
+  async buscar(id: string): Promise<Alunos> {
+    const [aluno, erro] = await async<Alunos>(this.alunosRepository.findOne({
       where: {
-        CobrancasCliente: {
-          clientesId,
-          AND: [
-            {
-              dataHora: {
-                gte: new Date(`${anoAtual}-${mes}-01`),
-              },
-            },
-            {
-              dataHora: {
-                lt: ultimoDia,
-              },
-            },
-          ],
-        },
-
-        tipo: 'ALUNO',
+        id: id,
+        deleted: null,
       },
-    });
+      relations: [
+        'alunosGraducoes',
+        'alunosGraducoes.modalidade',
+        'plano',
+      ],
+    }));
 
-    const alunosAtivos = await this.prisma.alunos.count({
+    if (!aluno || erro) {
+      throw new NotFoundException('Aluno não encontrado');
+    }
+
+    return aluno;
+  }
+
+  async contagem(clientesId: string, academiaId: string): Promise<{ alunosPagos: number; alunosAtivos: number }> {
+    const dataAtual = new Date();
+    const mes: string = format(dataAtual, 'MM');
+    const anoAtual: string = format(dataAtual, 'yyyy');
+    const ultimoDia: Date = lastDayOfMonth(dataAtual);
+
+    const alunos: CobrancasClienteItems[] = await this.cobrancaClienteItemRepository
+      .createQueryBuilder('cobrancaClienteItem')
+      .innerJoinAndSelect('cobrancaClienteItem.cobrancasCliente', 'cobrancasCliente')
+      .where('cobrancaClienteItem.tipo = :tipo', { tipo: CobrancasClienteItemsTipo.ALUNO })
+      .andWhere('cobrancasCliente.clientesId = :clientesId', { clientesId })
+      .andWhere('cobrancasCliente.dataHora BETWEEN :startDate AND :endDate', {
+        startDate: `${anoAtual}-${mes}-01`,
+        endDate: ultimoDia,
+      })
+      .getMany();
+
+    const alunosAtivos: number = await this.alunosRepository.count({
       where: {
         academiaId,
         deleted: null,
@@ -84,7 +71,7 @@ export class AlunosService {
     });
 
     return {
-      alunosPagos: alunos.reduce((prev, actual) => {
+      alunosPagos: alunos.reduce((prev: 0, actual: CobrancasClienteItems): number => {
         return prev + actual.qtd;
       }, 0),
       alunosAtivos,
@@ -233,14 +220,6 @@ export class AlunosService {
         ...item,
         modalidades: item.alunosGraducoes.map((item2) => item2.modalidade.nome),
       };
-    });
-  }
-
-  async getByModalidade(id: string) {
-    const result = await this.prisma.alunosGraducao.findMany({
-      where: {
-        modalidadesId: id,
-      },
     });
   }
 }
