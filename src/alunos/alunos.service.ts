@@ -128,13 +128,13 @@ export class AlunosService {
     }
 
     const contagem = await this.contagem(
-      user.privateMetadata.clienteId as string,
-      user.privateMetadata.academiaId as string,
+      user.clienteId as string,
+      user.academiaId as string,
     );
 
     const aluno = await this.prisma.alunos.create({
       data: {
-        academiaId: String(user.privateMetadata.academiaId),
+        academiaId: String(user.academiaId),
         nome: body.nome,
         cep: body.cep,
         cidade: body.cidade,
@@ -182,7 +182,7 @@ export class AlunosService {
 
     if (contagem.alunosAtivos === contagem.alunosPagos) {
       await this.cobrancaService.lancarValor({
-        clientesId: user.privateMetadata.clienteId as string,
+        clientesId: user.clienteId as string,
         tipo: 'ALUNO',
       });
     }

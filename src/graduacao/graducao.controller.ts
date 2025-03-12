@@ -1,6 +1,5 @@
-import { User } from "@clerk/backend";
-import { Controller, Get, HttpException } from "@nestjs/common";
-import { CurrentUser } from "src/_core/decorator/currentUser.decorator";
+
+import { Controller, Get, HttpException, Req } from "@nestjs/common";
 import { PrismaService } from "src/_core/prisma.service";
 
 @Controller('graduacoes')
@@ -8,12 +7,12 @@ export class GraducaoController {
   constructor(private prisma: PrismaService) {}
 
   @Get()
-  async listar(@CurrentUser() user: User) {
+  async listar(@Req() req) {
       try {
         const where = {
           deleted: null,
           aluno: {
-            academiaId: user.privateMetadata.academiaId as string,
+            academiaId: req.user.academiaId,
             deleted: null,
           },
         };
