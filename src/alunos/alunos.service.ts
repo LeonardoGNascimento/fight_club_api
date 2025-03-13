@@ -22,22 +22,20 @@ export class AlunosService {
     private prisma: PrismaService,
     private cobrancaService: CobrancaService,
     @InjectRepository(Alunos) private alunosRepository: Repository<Alunos>,
-    @InjectRepository(CobrancasClienteItems) private cobrancaClienteItemRepository: Repository<CobrancasClienteItems>,
-  ) {
-  }
+    @InjectRepository(CobrancasClienteItems)
+    private cobrancaClienteItemRepository: Repository<CobrancasClienteItems>,
+  ) {}
 
   async buscar(id: string): Promise<Alunos> {
-    const [aluno, erro] = await async<Alunos>(this.alunosRepository.findOne({
-      where: {
-        id: id,
-        deleted: null,
-      },
-      relations: [
-        'alunosGraducoes',
-        'alunosGraducoes.modalidade',
-        'plano',
-      ],
-    }));
+    const [aluno, erro] = await async<Alunos>(
+      this.alunosRepository.findOne({
+        where: {
+          id: id,
+          deleted: null,
+        },
+        relations: ['alunosGraducoes', 'alunosGraducoes.modalidade', 'plano'],
+      }),
+    );
 
     if (!aluno || erro) {
       throw new NotFoundException('Aluno não encontrado');
@@ -46,22 +44,31 @@ export class AlunosService {
     return aluno;
   }
 
-  async contagem(clientesId: string, academiaId: string): Promise<{ alunosPagos: number; alunosAtivos: number }> {
+  async contagem(
+    clientesId: string,
+    academiaId: string,
+  ): Promise<{ alunosPagos: number; alunosAtivos: number }> {
     const dataAtual = new Date();
     const mes: string = format(dataAtual, 'MM');
     const anoAtual: string = format(dataAtual, 'yyyy');
     const ultimoDia: Date = lastDayOfMonth(dataAtual);
 
-    const alunos: CobrancasClienteItems[] = await this.cobrancaClienteItemRepository
-      .createQueryBuilder('cobrancaClienteItem')
-      .innerJoinAndSelect('cobrancaClienteItem.cobrancasCliente', 'cobrancasCliente')
-      .where('cobrancaClienteItem.tipo = :tipo', { tipo: CobrancasClienteItemsTipo.ALUNO })
-      .andWhere('cobrancasCliente.clientesId = :clientesId', { clientesId })
-      .andWhere('cobrancasCliente.dataHora BETWEEN :startDate AND :endDate', {
-        startDate: `${anoAtual}-${mes}-01`,
-        endDate: ultimoDia,
-      })
-      .getMany();
+    const alunos: CobrancasClienteItems[] =
+      await this.cobrancaClienteItemRepository
+        .createQueryBuilder('cobrancaClienteItem')
+        .innerJoinAndSelect(
+          'cobrancaClienteItem.cobrancasCliente',
+          'cobrancasCliente',
+        )
+        .where('cobrancaClienteItem.tipo = :tipo', {
+          tipo: CobrancasClienteItemsTipo.ALUNO,
+        })
+        .andWhere('cobrancasCliente.clientesId = :clientesId', { clientesId })
+        .andWhere('cobrancasCliente.dataHora BETWEEN :startDate AND :endDate', {
+          startDate: `${anoAtual}-${mes}-01`,
+          endDate: ultimoDia,
+        })
+        .getMany();
 
     const alunosAtivos: number = await this.alunosRepository.count({
       where: {
@@ -71,9 +78,12 @@ export class AlunosService {
     });
 
     return {
-      alunosPagos: alunos.reduce((prev: 0, actual: CobrancasClienteItems): number => {
-        return prev + actual.qtd;
-      }, 0),
+      alunosPagos: alunos.reduce(
+        (prev: 0, actual: CobrancasClienteItems): number => {
+          return prev + actual.qtd;
+        },
+        0,
+      ),
       alunosAtivos,
     };
   }
@@ -221,5 +231,112 @@ export class AlunosService {
         modalidades: item.alunosGraducoes.map((item2) => item2.modalidade.nome),
       };
     });
+  }
+
+  async put({ id, ...body }: any) {
+    const aluno = await this.prisma.alunos.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!aluno) {
+      throw new NotFoundException({ error: 'Aluno não encontrado' });
+    }
+
+    const updatedAluno = await this.prisma.alunos.update({
+      where: {
+        id: aluno.id,
+      },
+      data: {
+        nome: body.nome,
+        cep: body.cep,
+        cidade: body.cidade,
+        cpf: body.cpf,
+        estado: body.estado,
+        numero: body.numero,
+        planosId: body.plano,
+        rua: body.rua,
+        telefone: body.telefone,
+        status: body.status,
+      },
+    });
+
+    if (body.modalidades && body.modalidades.length > 0) {
+      await this.prisma.alunosGraducao.deleteMany({
+        where: {
+          alunosId: aluno.id,
+        },
+      });
+
+      await Promise.all(
+        body.modalidades.map(async (modalidade: string) => {
+          const graduacao = await this.prisma.graduacoes.findFirst({
+            where: {
+              modalidadesId: modalidade,
+              deleted: null,
+              ordem: 1,
+            },
+          });
+
+          const data: any = {
+            alunosId: aluno.id,
+            modalidadesId: modalidade,
+            graduacoesId: null,
+          };
+
+          if (graduacao) {
+            data.graduacoesId = graduacao.id;
+          }
+
+          await this.prisma.alunosGraducao.create({
+            data,
+          });
+        }),
+      );
+    }
+
+    return updatedAluno;
+  }
+
+  async delete(id: string) {
+    const aluno = await this.prisma.alunos.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!aluno) {
+      throw new NotFoundException({ error: 'Aluno não encontrado' });
+    }
+
+    const deletedAluno = await this.prisma.alunos.update({
+      data: {
+        deleted: new Date(),
+      },
+      where: {
+        id: aluno.id,
+      },
+    });
+
+    await this.prisma.alunosExamesGraducao.updateMany({
+      data: {
+        deleted: new Date(),
+      },
+      where: {
+        alunosId: aluno.id,
+      },
+    });
+
+    await this.prisma.cobrancas.updateMany({
+      data: {
+        deleted: new Date(),
+      },
+      where: {
+        alunosId: aluno.id,
+      },
+    });
+
+    return deletedAluno;
   }
 }

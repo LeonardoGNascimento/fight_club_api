@@ -1,17 +1,18 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
   Post,
+  Put,
   Query,
   Req,
 } from '@nestjs/common';
 import { AlunosService } from './alunos.service';
 import { AtualizarGraduacaoDto } from './dto/atualizarGraducao.dto';
 import { ListarAlunosQueryDto } from './dto/listarAlunos.dto';
-import { User } from 'src/_core/interfaces/user.interface';
 
 @Controller('alunos')
 export class AlunosController {
@@ -27,10 +28,7 @@ export class AlunosController {
   }
 
   @Get()
-  async findAll(
-    @Req() req,
-    @Query() query: ListarAlunosQueryDto,
-  ) {
+  async findAll(@Req() req, @Query() query: ListarAlunosQueryDto) {
     return this.alunosService.findAll({
       query,
       academiaId: req.user.academiaId,
@@ -39,10 +37,7 @@ export class AlunosController {
 
   @Get('contagem')
   contagem(@Req() req) {
-    return this.alunosService.contagem(
-      req.user.clienteId,
-      req.user.academiaId,
-    );
+    return this.alunosService.contagem(req.user.clienteId, req.user.academiaId);
   }
 
   @Get(':id')
@@ -53,6 +48,16 @@ export class AlunosController {
   @Patch('/:id/modalidade/:modalidadeId/graduacao/:graduacaoId')
   atualizarGraduacao(@Param() atualizarGraduacaoDto: AtualizarGraduacaoDto) {
     return this.alunosService.atualizarGraduacao(atualizarGraduacaoDto);
+  }
+
+  @Put(':id')
+  put(@Param('id') id: string, @Body() body: any) {
+    return this.alunosService.put({ id, ...body });
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.alunosService.delete(id);
   }
 
   // @Get('modalidade/:id')

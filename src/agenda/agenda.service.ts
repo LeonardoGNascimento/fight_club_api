@@ -5,9 +5,7 @@ import { Agendas } from '@prisma/client';
 
 @Injectable()
 export class AgendaService {
-  constructor(
-    private prisma: PrismaService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async listar(academiaId: string): Promise<Agendas[]> {
     const aulas = await this.prisma.agendas.findMany({
@@ -120,5 +118,44 @@ export class AgendaService {
     });
 
     return true;
+  }
+
+  async delete(id: string) {
+    await this.prisma.agendas.delete({ where: { id: String(id) } });
+
+    return true;
+  }
+
+  async proximos(academiaId: string) {
+    const now = new Date();
+    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+
+    const aulas = await this.prisma.agendas.findMany({
+      include: {
+        modalidade: true,
+      },
+      where: {
+        academiasId: String(academiaId),
+        dataInicio: {
+          gte: startOfDay, // Maior ou igual ao início do dia
+          lte: endOfDay, // Menor ou igual ao fim do dia
+        },
+        deleted: null,
+      },
+      orderBy: {
+        dataInicio: 'asc',
+      },
+    });
+
+    return aulas.map((item) => {
+      return {
+        id: item.id,
+        title: item.modalidade.nome,
+        start: item.dataInicio,
+        end: item.dataFinal,
+        tipo: item.tipo,
+      };
+    });
   }
 }

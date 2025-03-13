@@ -33,6 +33,7 @@ import { Turmas } from './_core/entity/turmas.entity';
 import { Usuarios } from './_core/entity/usuarios.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './_core/guard/jwt-auth.guard';
+import { ClienteModule } from './cliente/cliente.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { JwtAuthGuard } from './_core/guard/jwt-auth.guard';
       isGlobal: true,
     }),
     CoreModule,
+    ClienteModule,
     CobrancaModule,
     AlunosModule,
     AgendaModule,

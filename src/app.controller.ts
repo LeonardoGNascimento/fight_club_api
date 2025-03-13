@@ -3,7 +3,6 @@ import { Request } from 'express';
 import { AppService } from './app.service';
 import { Public } from './_core/decorator/public.decorator';
 import { Cobrancas } from '@prisma/client';
-import { User } from './_core/interfaces/user.interface';
 
 @Controller('')
 export class AppController {
@@ -27,6 +26,11 @@ export class AppController {
   @Get('dashboard/eventos')
   dashboardEventos(@Req() req) {
     return this.service.proximos(req.user.clienteId);
+  }
+
+  @Get('dashboard/proximos')
+  proximos(@Req() req: any) {
+    return this.service.proximos(req.user.academiaId);
   }
 
   @Post('/interno/cliente/cobrar')
