@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { AbacatePayService } from './abacatePay.service';
-import { Public } from 'src/_core/decorator/public.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('abacate-pay')
 export class AbacatePayController {
