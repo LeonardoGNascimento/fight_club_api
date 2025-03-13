@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { AppService } from './app.service';
-import { Public } from './_core/decorator/public.decorator';
+import { Public } from './auth/decorators/public.decorator';
 import { Cobrancas } from '@prisma/client';
 
 @Controller('')

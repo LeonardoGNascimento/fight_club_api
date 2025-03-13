@@ -1,6 +1,6 @@
 import { Controller, Get, Query } from "@nestjs/common";
 import { PrecosService } from "./precos.service";
-import { Public } from "src/_core/decorator/public.decorator";
+import { Public } from '../auth/decorators/public.decorator';
 import { IListar } from "./@types/IListar";
 
 @Controller("precos")
