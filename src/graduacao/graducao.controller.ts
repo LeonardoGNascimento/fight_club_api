@@ -1,79 +1,45 @@
-
-import { Controller, Get, HttpException, Req } from "@nestjs/common";
-import { PrismaService } from "src/_core/prisma.service";
+import { Controller, Get, HttpException, Req } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { AlunosGraducao } from '../_core/entity/alunos-graducao.entity';
+import { ListarGraduacoesQuery } from './query/listarGraduacoes.query';
 
 @Controller('graduacoes')
 export class GraducaoController {
-  constructor(private prisma: PrismaService) {}
+  constructor(@InjectRepository(AlunosGraducao) private alunosGraduacaoRepository: Repository<AlunosGraducao>) {
+  }
 
   @Get()
-  async listar(@Req() req) {
-      try {
-        const where = {
-          deleted: null,
-          aluno: {
-            academiaId: req.user.academiaId,
-            deleted: null,
+  async listar(@Req() req): Promise<ListarGraduacoesQuery[]> {
+    try {
+      const graduacoes: AlunosGraducao[] = await this.alunosGraduacaoRepository
+        .createQueryBuilder('alunosGraducao')
+        .innerJoinAndSelect('alunosGraducao.aluno', 'aluno', 'aluno.deleted IS NULL AND aluno.academiaId = :academiaId', { academiaId: req.user.academiaId })
+        .innerJoinAndSelect('alunosGraducao.graduacao', 'graduacao')
+        .leftJoinAndSelect('alunosGraducao.modalidade', 'modalidade')
+        .leftJoinAndSelect('modalidade.graduacoes', 'modalidadeGraduacao', 'modalidadeGraduacao.deleted IS NULL')
+        .where('alunosGraducao.deleted IS NULL')
+        .orderBy('aluno.nome', 'ASC')
+        .addOrderBy('graduacao.ordem', 'ASC')
+        .getMany();
+
+      return graduacoes.map((grad: AlunosGraducao) => {
+        const totalGraduacoes: number = grad.modalidade.graduacoes.length;
+        const grauAtual: number = grad.graduacao?.ordem || 0;
+        const qtdGraus: number = grad.graduacao?.qtdGraus || 0;
+
+        return {
+          ...grad,
+          grauInfo: {
+            atual: grauAtual,
+            total: totalGraduacoes,
+            qtdGraus,
+            proxima: grauAtual < totalGraduacoes ? grauAtual + 1 : null,
           },
         };
-    
-        const graduacoes = await this.prisma.alunosGraducao.findMany({
-          where,
-          include: {
-            aluno: {
-              select: {
-                nome: true,
-              },
-            },
-            graduacao: true,
-            modalidade: {
-              select: {
-                nome: true,
-                graduacoes: {
-                  where: {
-                    deleted: null,
-                  },
-                  orderBy: {
-                    ordem: 'asc',
-                  },
-                },
-              },
-            },
-          },
-          orderBy: [
-            {
-              aluno: {
-                nome: 'asc',
-              },
-            },
-            {
-              graduacao: {
-                ordem: 'asc',
-              },
-            },
-          ],
-        });
-    
-        // Mapeia os resultados para incluir informações sobre o grau
-        const graduacoesComGrau = graduacoes.map(grad => {
-          const totalGraduacoes = grad.modalidade.graduacoes.length;
-          const grauAtual = grad.graduacao?.ordem || 0;
-          const qtdGraus = grad.graduacao?.qtdGraus || 0;
-    
-          return {
-            ...grad,
-            grauInfo: {
-              atual: grauAtual,
-              total: totalGraduacoes,
-              qtdGraus,
-              proxima: grauAtual < totalGraduacoes ? grauAtual + 1 : null,
-            },
-          };
-        });
-    
-        return graduacoesComGrau
-      } catch (error) {
-        throw new HttpException({ error: "Erro ao buscar graduações" }, 500)
-      }
+      });
+    } catch (error) {
+      throw new HttpException({ error: 'Erro ao buscar graduações' }, 500);
+    }
   }
 }
