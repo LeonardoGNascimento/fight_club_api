@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  BadRequestException,
   ConflictException,
 } from '@nestjs/common';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
@@ -9,6 +8,8 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { UsuarioRepository } from './repositories/usuario.repository';
 import { AdminRepository } from './repositories/admin.repository';
 import * as bcrypt from 'bcrypt';
+import { UsuariosEntity } from './entities/usuario.entity';
+import { AdminEntity } from './entities/admin.entity';
 
 @Injectable()
 export class UsuariosService {
@@ -17,74 +18,73 @@ export class UsuariosService {
     private readonly adminRepository: AdminRepository,
   ) {}
 
-  async create(createUsuarioDto: CreateUsuarioDto) {
-    const existingUser = await this.usuarioRepository.findByEmail(
-      createUsuarioDto.email,
-    );
+  async create(createUsuarioDto: CreateUsuarioDto): Promise<UsuariosEntity> {
+    const existingUser: UsuariosEntity =
+      await this.usuarioRepository.findByEmail(createUsuarioDto.email);
 
     if (existingUser) {
       throw new ConflictException('Email já está em uso');
     }
 
-    const hashedPassword = await bcrypt.hash(createUsuarioDto.password, 10);
+    const hashedPassword: string = await bcrypt.hash(
+      createUsuarioDto.password,
+      10,
+    );
 
-    const newUser = await this.usuarioRepository.create({
+    return await this.usuarioRepository.create({
       ...createUsuarioDto,
       password: hashedPassword,
     });
-
-    const { password, ...result } = newUser;
-    return result;
   }
 
-  async findByEmail(email: string) {
+  async findByEmail(email: string): Promise<UsuariosEntity> {
     return await this.usuarioRepository.findByEmail(email);
   }
 
   async isAdmin(usuarioId: string): Promise<boolean> {
-    const admin = await this.adminRepository.findByUsuarioId(usuarioId);
-    return !!admin;
+    return !!(await this.adminRepository.findByUsuarioId(usuarioId));
   }
 
-  async update(id: string, updateUsuarioDto: UpdateUsuarioDto) {
-    const usuario = await this.usuarioRepository.findOne(id);
+  async update(
+    id: string,
+    updateUsuarioDto: UpdateUsuarioDto,
+  ): Promise<UsuariosEntity> {
+    const usuario: UsuariosEntity = await this.usuarioRepository.findOne(id);
 
     if (!usuario) {
       throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
     }
 
-    const data = { ...updateUsuarioDto };
-
     if (updateUsuarioDto.password) {
-      data.password = await bcrypt.hash(updateUsuarioDto.password, 10);
+      updateUsuarioDto.password = await bcrypt.hash(
+        updateUsuarioDto.password,
+        10,
+      );
     }
 
-    const updatedUser = await this.usuarioRepository.update(id, data);
-
-    const { password, ...result } = updatedUser;
-    return result;
+    return await this.usuarioRepository.update(id, updateUsuarioDto);
   }
 
-  async remove(id: string) {
-    const usuario = await this.usuarioRepository.findOne(id);
+  async remove(id: string): Promise<void> {
+    const usuario: UsuariosEntity = await this.usuarioRepository.findOne(id);
 
     if (!usuario) {
       throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
     }
 
     await this.usuarioRepository.softDelete(id);
-
-    return { message: 'Usuário removido com sucesso' };
   }
 
   async createAdmin(usuarioId: string) {
-    const usuario = await this.usuarioRepository.findOne(usuarioId);
+    const usuario: UsuariosEntity =
+      await this.usuarioRepository.findOne(usuarioId);
 
     if (!usuario) {
       throw new NotFoundException(`Usuário com ID ${usuarioId} não encontrado`);
     }
 
-    const existingAdmin = await this.adminRepository.findByUsuarioId(usuarioId);
+    const existingAdmin: AdminEntity =
+      await this.adminRepository.findByUsuarioId(usuarioId);
 
     if (existingAdmin) {
       throw new ConflictException('Usuário já é um administrador');
@@ -93,21 +93,21 @@ export class UsuariosService {
     return await this.adminRepository.create(usuarioId);
   }
 
-  async removeAdmin(usuarioId: string) {
-    const usuario = await this.usuarioRepository.findOne(usuarioId);
+  async removeAdmin(usuarioId: string): Promise<void> {
+    const usuario: UsuariosEntity =
+      await this.usuarioRepository.findOne(usuarioId);
 
     if (!usuario) {
       throw new NotFoundException(`Usuário com ID ${usuarioId} não encontrado`);
     }
 
-    const admin = await this.adminRepository.findByUsuarioId(usuarioId);
+    const admin: AdminEntity =
+      await this.adminRepository.findByUsuarioId(usuarioId);
 
     if (!admin) {
       throw new NotFoundException('Usuário não é um administrador');
     }
 
     await this.adminRepository.remove(usuarioId);
-
-    return { message: 'Privilégio de administrador removido com sucesso' };
   }
 }

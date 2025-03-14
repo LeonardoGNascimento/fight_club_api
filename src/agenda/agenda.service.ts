@@ -2,10 +2,27 @@ import { Injectable } from '@nestjs/common';
 import { addDays, endOfMonth, format } from 'date-fns';
 import { PrismaService } from 'src/_core/prisma.service';
 import { Agendas } from '@prisma/client';
+import { CriarTurmaDto } from './DTO/criarTurma.dto';
+import { Turmas } from '../_core/entity/turmas.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AgendaService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @InjectRepository(Turmas) private turmaRepository: Repository<Turmas>,
+  ) {}
+
+  async listarTurmas(academiaId: string): Promise<Turmas[]> {
+    return await this.turmaRepository.find({
+      where: {
+        modalidade: {
+          academiasId: academiaId,
+        },
+      },
+    });
+  }
 
   async listar(academiaId: string): Promise<Agendas[]> {
     const aulas = await this.prisma.agendas.findMany({
@@ -61,6 +78,13 @@ export class AgendaService {
     });
 
     return { aula, alunos };
+  }
+
+  async criarTurma(body: CriarTurmaDto): Promise<Turmas> {
+    return this.turmaRepository.save({
+      ...body,
+      modalidadesId: body.modalidadeId,
+    });
   }
 
   async criar(body: any): Promise<boolean> {

@@ -9,3 +9,5 @@ export async function async<T = any>(f: any): Promise<Result<T>> {
     return [null, error];
   }
 }
+
+export const asyncFunction: <T = any>(f: any) => Promise<Result<T>> = async;

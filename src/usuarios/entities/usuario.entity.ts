@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 @Entity('Usuarios')
 export class UsuariosEntity {
@@ -20,6 +21,7 @@ export class UsuariosEntity {
   @Column({ nullable: true })
   sobrenome: string;
 
+  @Exclude()
   @Column()
   password: string;
 
@@ -35,10 +37,14 @@ export class UsuariosEntity {
   @Column()
   clienteId: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({
+    default: Date.now,
+  })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({
+    default: Date.now,
+  })
   updatedAt: Date;
 
   @Column({ nullable: true })

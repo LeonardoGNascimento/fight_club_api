@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { UsuariosEntity } from '../entities/usuario.entity';
 import { CreateUsuarioDto } from '../dto/create-usuario.dto';
 import { UpdateUsuarioDto } from '../dto/update-usuario.dto';
+import { asyncFunction } from '../../_core/async';
 
 @Injectable()
 export class UsuarioRepository {
@@ -14,21 +15,26 @@ export class UsuarioRepository {
 
   async create(createUsuarioDto: CreateUsuarioDto): Promise<UsuariosEntity> {
     try {
-      const usuario = this.repo.create(createUsuarioDto);
+      const usuario: UsuariosEntity = this.repo.create({
+        ...createUsuarioDto,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
       return await this.repo.save(usuario);
     } catch (e) {
+      console.log(e);
       return null;
     }
   }
 
   async findOne(id: string): Promise<UsuariosEntity> {
-    try {
-      return await this.repo.findOne({
+    const [data, erro] = await asyncFunction(
+      this.repo.findOne({
         where: { id, deleted: null },
-      });
-    } catch (e) {
-      return null;
-    }
+      }),
+    );
+
+    return erro ? null : data;
   }
 
   async findByEmail(email: string): Promise<UsuariosEntity> {

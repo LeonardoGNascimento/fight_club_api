@@ -1,0 +1,19 @@
+### GET request to example server
+POST http://localhost:3001/usuarios
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtODJjNnZiajAwMWYydjZsdmliMmJpOWYiLCJlbWFpbCI6ImFkbWluQGxlZ2FuYS5jb20uYnIiLCJhY2FkZW1pYUlkIjoiY202cDFuenhvMDAwMWRqZWI3NWgwcWlqNyIsImNsaWVudGVJZCI6ImNtNmtveGUwaDAwMDBnOGs0bXV5NGx2d3QiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3NDE5MTAwMTQsImV4cCI6MTc0MTk5NjQxNH0.73Oijm0jp_rozPOIQGfUIvmbfmcenpHVgZZWwxGX1lM
+Content-Type: application/json
+
+{
+  "email": "teste3@gamil.com",
+  "nome": "teste3",
+  "password": "123",
+  "academiaId": "cm6p1nzxo0001djeb75h0qij7",
+  "clienteId": "cm6koxe0h0000g8k4muy4lvwt "
+}
+###
+
+### GET request to example server
+GET http://localhost:3001/agenda/turma
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtODJjNnZiajAwMWYydjZsdmliMmJpOWYiLCJlbWFpbCI6ImFkbWluQGxlZ2FuYS5jb20uYnIiLCJhY2FkZW1pYUlkIjoiY202cDFuenhvMDAwMWRqZWI3NWgwcWlqNyIsImNsaWVudGVJZCI6ImNtNmtveGUwaDAwMDBnOGs0bXV5NGx2d3QiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3NDE5MTAwMTQsImV4cCI6MTc0MTk5NjQxNH0.73Oijm0jp_rozPOIQGfUIvmbfmcenpHVgZZWwxGX1lM
+Content-Type: application/json
+###

@@ -8,9 +8,7 @@ import { UsuarioRepository } from './repositories/usuario.repository';
 import { AdminRepository } from './repositories/admin.repository';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([UsuariosEntity, AdminEntity]),
-  ],
+  imports: [TypeOrmModule.forFeature([UsuariosEntity, AdminEntity])],
   controllers: [UsuariosController],
   providers: [UsuariosService, UsuarioRepository, AdminRepository],
   exports: [UsuariosService],
