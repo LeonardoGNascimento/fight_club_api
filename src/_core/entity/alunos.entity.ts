@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Academias } from './academias.entity';
 import { Planos } from './planos.entity';
-import { Status } from './status.enum'; // Enum para o Status do aluno
+import { Status } from './status.enum';
 import { Cobrancas } from './cobrancas.entity';
 import { Chamada } from './chamada.entity';
 import { AlunosExamesGraducao } from './alunos-exames-graducao.entity';
