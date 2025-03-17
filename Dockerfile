@@ -2,9 +2,9 @@ FROM node:22.14.0
 
 WORKDIR /app/api
 
-COPY ./package.json .
+COPY ./package.json ./package.json
 
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 COPY . .
 
