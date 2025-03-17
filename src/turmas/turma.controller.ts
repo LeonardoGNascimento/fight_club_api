@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { TurmaService } from './turma.service';
 import { CriarTurmaDto } from './DTO/criarTurma.dto';
 import { Turmas } from '../_core/entity/turmas.entity';
@@ -17,5 +25,11 @@ export class TurmaController {
   @Post()
   criarTurma(@Body() body: CriarTurmaDto): Promise<Turmas> {
     return this.service.criar(body);
+  }
+
+  @Delete('/:id')
+  @HttpCode(204)
+  deletar(@Param('id') id: string): Promise<void> {
+    return this.service.deletar(id);
   }
 }

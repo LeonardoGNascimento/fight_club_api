@@ -15,6 +15,22 @@ export class TurmaService {
     @InjectRepository(Turmas) private turmaRepository: Repository<Turmas>,
   ) {}
 
+  async deletar(id: string): Promise<void> {
+    const contagemAlunos = await this.turmaRepository.findOne({
+      relations: ['alunosGraducoes'],
+    });
+
+    if (!contagemAlunos) {
+      throw new NotFoundException('Turma não encontrada');
+    }
+
+    if (contagemAlunos.alunosGraducoes.length > 0) {
+      throw new BadRequestException('Turma possui alunos');
+    }
+
+    await this.turmaRepository.delete(id);
+  }
+
   async listar(academiaId: string): Promise<Turmas[]> {
     const [data, error] = await async<Turmas[]>(
       this.turmaRepository.find({
