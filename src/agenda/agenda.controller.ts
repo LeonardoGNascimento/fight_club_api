@@ -1,34 +1,29 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Req,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { AgendaService } from './agenda.service';
 import { Agendas } from '@prisma/client';
 import { CriarTurmaDto } from './DTO/criarTurma.dto';
 import { Turmas } from '../_core/entity/turmas.entity';
+import { GetUser } from '../_core/getUser.decorator';
+import { User } from '../@types/user';
 
 @Controller('agenda')
 export class AgendaController {
   constructor(private service: AgendaService) {}
 
   @Get()
-  async listar(@Req() req): Promise<Agendas[]> {
-    return await this.service.listar(req.user.academiaId);
+  async listar(@GetUser() user: User): Promise<Agendas[]> {
+    return await this.service.listar(user.academiaId);
   }
 
   @Get('/proximos')
-  proximos(@Req() req: any) {
-    return this.service.proximos(req.user.academiaId);
+  proximos(@GetUser() user: User) {
+    return this.service.proximos(user.academiaId);
   }
 
   @Get('/turma')
-  listarTurma(@Req() req: any) {
-    return this.service.listarTurmas(req.user.academiaId);
+  async listarTurma(@GetUser() user: User) {
+    console.log(user);
+    return this.service.listarTurmas(user.academiaId);
   }
 
   @Get(':id')
@@ -37,10 +32,10 @@ export class AgendaController {
   }
 
   @Post()
-  async criar(@Req() req, @Body() body): Promise<boolean> {
+  async criar(@GetUser() user: User, @Body() body): Promise<boolean> {
     return await this.service.criar({
       ...body,
-      academiaId: req.user.academiaId,
+      academiaId: user.academiaId,
     });
   }
 
@@ -50,7 +45,7 @@ export class AgendaController {
   }
 
   @Delete(':id')
-  delete(@Req() req, @Param('id') id: string) {
+  delete(@Param('id') id: string) {
     return this.service.delete(id);
   }
 }

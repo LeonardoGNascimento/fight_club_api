@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Modalidades } from './modalidades.entity';
 import { AlunosGraducao } from './alunos-graducao.entity';
 
@@ -16,12 +23,10 @@ export class Turmas {
   @Column()
   modalidadesId: string;
 
-  // Relacionamento com Modalidades
   @ManyToOne(() => Modalidades, (modalidade) => modalidade.Turmas)
   @JoinColumn({ name: 'modalidadesId' })
   modalidade: Modalidades;
 
-  // Relacionamento com AlunosGraducao
   @OneToMany(() => AlunosGraducao, (alunoGraduacao) => alunoGraduacao.turmas)
   alunosGraducoes: AlunosGraducao[];
 }

@@ -13,6 +13,7 @@ import { ClienteModule } from './cliente/cliente.module';
 import { CobrancaModule } from './cobrancas/cobranca.module';
 import { GraduacaoModule } from './graduacao/graduacao.module';
 import { PrecoModule } from './precos/precos.module';
+import { TurmaModule } from './turmas/turma.module';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { PrecoModule } from './precos/precos.module';
       username: 'admin',
       password: 'c3fbd71943f44829cd06',
       database: 'dojoplanner',
-      entities: [__dirname + '/**/*.entity{.ts,.js}',],
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: false,
     }),
     ConfigModule.forRoot({
@@ -37,6 +38,7 @@ import { PrecoModule } from './precos/precos.module';
     AbacatePayModule,
     PrecoModule,
     GraduacaoModule,
+    TurmaModule,
   ],
   controllers: [AppController],
   providers: [
@@ -47,5 +49,4 @@ import { PrecoModule } from './precos/precos.module';
     },
   ],
 })
-export class AppModule {
-}
+export class AppModule {}
