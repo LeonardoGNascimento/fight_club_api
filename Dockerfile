@@ -1,4 +1,4 @@
-FROM 23-alpine3.20
+FROM node:22.14.0
 
 WORKDIR /app/api
 
