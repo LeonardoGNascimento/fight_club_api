@@ -1,11 +1,24 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Academias } from './academias.entity';
 import { Planos } from './planos.entity';
-import { Status } from './status.enum';
 import { Cobrancas } from './cobrancas.entity';
 import { Chamada } from './chamada.entity';
 import { AlunosExamesGraducao } from './alunos-exames-graducao.entity';
 import { AlunosGraducao } from './alunos-graducao.entity';
+
+export enum Status {
+  ATIVO = 'ATIVO',
+  INATIVO = 'INATIVO',
+  PENDENTE = 'PENDENTE',
+  DEVENDO = 'DEVENDO',
+}
 
 @Entity('Alunos')
 export class Alunos {
@@ -62,7 +75,10 @@ export class Alunos {
   plano: Planos;
 
   // Relacionamento com AlunosExamesGraducao
-  @OneToMany(() => AlunosExamesGraducao, (alunoExameGraducao) => alunoExameGraducao.aluno)
+  @OneToMany(
+    () => AlunosExamesGraducao,
+    (alunoExameGraducao) => alunoExameGraducao.aluno,
+  )
   alunosExamesGraducoes: AlunosExamesGraducao[];
 
   // Relacionamento com AlunosGraducao
