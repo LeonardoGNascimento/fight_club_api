@@ -3,22 +3,32 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CriarTurmaDto } from './DTO/criarTurma.dto';
+import { CriarTurmaDto } from './dto/criarTurma.dto';
 import { Turmas } from '../_core/entity/turmas.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { async } from '../_core/async';
+import { AtualizarTurmaDto } from './dto/atualizarTurma.dto';
+import { TurmaRepository } from './turma.repository';
 
 @Injectable()
 export class TurmaService {
-  constructor(
-    @InjectRepository(Turmas) private turmaRepository: Repository<Turmas>,
-  ) {}
+  constructor(private turmaRepository: TurmaRepository) {}
+
+  async atualizar(dto: AtualizarTurmaDto): Promise<Turmas> {
+    await this.buscar(dto.id);
+    return this.turmaRepository.atualizar(dto);
+  }
+
+  async buscar(id: string): Promise<Turmas> {
+    const turma: Turmas = await this.turmaRepository.buscar(id);
+
+    if (!turma) {
+      throw new NotFoundException('Turma não encontrada');
+    }
+
+    return turma;
+  }
 
   async deletar(id: string): Promise<void> {
-    const contagemAlunos = await this.turmaRepository.findOne({
-      relations: ['alunosGraducoes'],
-    });
+    const contagemAlunos: Turmas = await this.turmaRepository.buscar(id);
 
     if (!contagemAlunos) {
       throw new NotFoundException('Turma não encontrada');
@@ -28,39 +38,26 @@ export class TurmaService {
       throw new BadRequestException('Turma possui alunos');
     }
 
-    await this.turmaRepository.delete(id);
+    await this.turmaRepository.deletar(id);
   }
 
   async listar(academiaId: string): Promise<Turmas[]> {
-    const [data, error] = await async<Turmas[]>(
-      this.turmaRepository.find({
-        where: {
-          modalidade: {
-            academiasId: academiaId,
-          },
-        },
-      }),
-    );
+    const turmas: Turmas[] = await this.turmaRepository.listar(academiaId);
 
-    if (error || data.length === 0) {
+    if (!turmas) {
       throw new NotFoundException('Nenhuma turma encontrada');
     }
 
-    return data;
+    return turmas;
   }
 
   async criar(body: CriarTurmaDto): Promise<Turmas> {
-    const [data, error] = await async<Turmas>(
-      this.turmaRepository.save({
-        ...body,
-        modalidadesId: body.modalidadeId,
-      }),
-    );
+    const turma: Turmas = await this.turmaRepository.criar(body);
 
-    if (error || !data) {
+    if (!turma) {
       throw new BadRequestException('Ocorreu um erro ao criar turma');
     }
 
-    return data;
+    return turma;
   }
 }

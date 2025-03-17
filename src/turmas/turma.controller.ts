@@ -5,13 +5,15 @@ import {
   Get,
   HttpCode,
   Param,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { TurmaService } from './turma.service';
-import { CriarTurmaDto } from './DTO/criarTurma.dto';
+import { CriarTurmaDto } from './dto/criarTurma.dto';
 import { Turmas } from '../_core/entity/turmas.entity';
 import { GetUser } from '../_core/getUser.decorator';
 import { User } from '../@types/user';
+import { AtualizarTurmaDto } from './dto/atualizarTurma.dto';
 
 @Controller('turma')
 export class TurmaController {
@@ -25,6 +27,14 @@ export class TurmaController {
   @Post()
   criarTurma(@Body() body: CriarTurmaDto): Promise<Turmas> {
     return this.service.criar(body);
+  }
+
+  @Patch(':id')
+  atualizar(
+    @Param('id') id: string,
+    @Body() body: AtualizarTurmaDto,
+  ): Promise<Turmas> {
+    return this.service.atualizar({ ...body, id });
   }
 
   @Delete('/:id')
