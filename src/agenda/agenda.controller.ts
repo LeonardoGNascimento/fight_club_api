@@ -1,17 +1,17 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { AgendaService } from './agenda.service';
-import { Agendas } from '@prisma/client';
 import { CriarTurmaDto } from './dto/criarTurma.dto';
 import { Turmas } from '../_core/entity/turmas.entity';
 import { GetUser } from '../_core/getUser.decorator';
 import { User } from '../@types/user';
+import { AgendasEntity } from './entities/agenda.entity';
 
 @Controller('agenda')
 export class AgendaController {
   constructor(private service: AgendaService) {}
 
   @Get()
-  async listar(@GetUser() user: User): Promise<Agendas[]> {
+  async listar(@GetUser() user: User): Promise<AgendasEntity[]> {
     return await this.service.listar(user.academiaId);
   }
 
