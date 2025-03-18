@@ -4,14 +4,14 @@ import { CriarTurmaDto } from './dto/criarTurma.dto';
 import { Turmas } from '../_core/entity/turmas.entity';
 import { GetUser } from '../_core/getUser.decorator';
 import { User } from '../@types/user';
-import { AgendasEntity } from './entities/agenda.entity';
+import { Agendas } from 'src/_core/entity/agendas.entity';
 
 @Controller('agenda')
 export class AgendaController {
   constructor(private service: AgendaService) {}
 
   @Get()
-  async listar(@GetUser() user: User): Promise<AgendasEntity[]> {
+  async listar(@GetUser() user: User): Promise<Agendas[]> {
     return await this.service.listar(user.academiaId);
   }
 
