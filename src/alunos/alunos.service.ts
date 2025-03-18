@@ -4,23 +4,36 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { format, lastDayOfMonth } from 'date-fns';
-import { PrismaService } from 'src/_core/prisma.service';
 import { CobrancaService } from 'src/cobrancas/cobranca.service';
 import { AtualizarGraduacaoDto } from './dto/atualizarGraducao.dto';
 import { CreateAlunoDto } from './dto/createAluno.dto';
 import { ListarAlunosDto } from './dto/listarAlunos.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Alunos } from '../_core/entity/alunos.entity';
+import { Alunos, Status } from '../_core/entity/alunos.entity';
 import { Repository } from 'typeorm';
 import { CobrancasClienteItems } from '../_core/entity/cobrancas-cliente-items.entity';
 import { CobrancasClienteItemsTipo } from '../_core/entity/cobrancas-cliente-items-tipo.enum';
 import { async } from 'src/_core/async';
+import { AlunosGraducao } from '../_core/entity/alunos-graducao.entity';
+import { Graduacoes } from '../_core/entity/graduacoes.entity';
+import { Planos } from '../_core/entity/planos.entity';
+import { AlunosExamesGraducao } from '../_core/entity/alunos-exames-graducao.entity';
+import { Cobrancas } from '../_core/entity/cobrancas.entity';
 
 @Injectable()
 export class AlunosService {
   constructor(
-    private prisma: PrismaService,
     private cobrancaService: CobrancaService,
+    @InjectRepository(Cobrancas)
+    private cobrancasRepository: Repository<Cobrancas>,
+    @InjectRepository(AlunosExamesGraducao)
+    private alunosExameGraduacaoRepository: Repository<AlunosExamesGraducao>,
+    @InjectRepository(Planos)
+    private planosRepository: Repository<Planos>,
+    @InjectRepository(Graduacoes)
+    private graduacoesRepository: Repository<Graduacoes>,
+    @InjectRepository(AlunosGraducao)
+    private alunosGraduacaoRepository: Repository<AlunosGraducao>,
     @InjectRepository(Alunos) private alunosRepository: Repository<Alunos>,
     @InjectRepository(CobrancasClienteItems)
     private cobrancaClienteItemRepository: Repository<CobrancasClienteItems>,
@@ -89,7 +102,7 @@ export class AlunosService {
   }
 
   async atualizarGraduacao(atualizarGraduacaoDto: AtualizarGraduacaoDto) {
-    const alunoModalidade = await this.prisma.alunosGraducao.findFirst({
+    const alunoModalidade = await this.alunosGraduacaoRepository.findOne({
       where: {
         alunosId: atualizarGraduacaoDto.id,
         modalidadesId: atualizarGraduacaoDto.modalidadeId,
@@ -100,20 +113,17 @@ export class AlunosService {
       throw new BadRequestException('Aluno não treina essa modalidade');
     }
 
-    await this.prisma.alunosGraducao.update({
-      data: {
-        graduacoesId: atualizarGraduacaoDto.graduacaoId,
-      },
-      where: {
-        id: alunoModalidade.id,
-      },
+    await this.alunosGraduacaoRepository.save({
+      graduacoesId: atualizarGraduacaoDto.graduacaoId,
+      alunosId: atualizarGraduacaoDto.id,
+      modalidadesId: atualizarGraduacaoDto.modalidadeId,
     });
 
     return true;
   }
 
   async create({ academiaId, clienteId, user, ...body }: CreateAlunoDto) {
-    const plano = await this.prisma.planos.findFirst({
+    const plano = await this.planosRepository.findOne({
       where: {
         id: body.plano,
         deleted: null,
@@ -129,26 +139,24 @@ export class AlunosService {
       user.academiaId as string,
     );
 
-    const aluno = await this.prisma.alunos.create({
-      data: {
-        academiaId: String(user.academiaId),
-        nome: body.nome,
-        cep: body.cep,
-        cidade: body.cidade,
-        cpf: body.cpf,
-        estado: body.estado,
-        numero: body.numero,
-        planosId: body.plano,
-        rua: body.rua,
-        telefone: body.telefone,
-        status: plano.valor == '0' ? 'ATIVO' : 'PENDENTE',
-      },
+    const aluno = await this.alunosRepository.save({
+      academiaId: String(user.academiaId),
+      nome: body.nome,
+      cep: body.cep,
+      cidade: body.cidade,
+      cpf: body.cpf,
+      estado: body.estado,
+      numero: body.numero,
+      planosId: body.plano,
+      rua: body.rua,
+      telefone: body.telefone,
+      status: plano.valor == '0' ? Status.ATIVO : Status.PENDENTE,
     });
 
     if (body.modalidades && body.modalidades.length > 0) {
       await Promise.all(
         body.modalidades.map(async (item) => {
-          const graduacao = await this.prisma.graduacoes.findFirst({
+          const graduacao = await this.graduacoesRepository.findOne({
             where: {
               modalidadesId: item,
               deleted: null,
@@ -166,9 +174,7 @@ export class AlunosService {
             data.graduacoesId = graduacao.id;
           }
 
-          await this.prisma.alunosGraducao.create({
-            data,
-          });
+          await this.alunosGraduacaoRepository.save(data);
         }),
       );
     }
@@ -213,15 +219,8 @@ export class AlunosService {
       whereClause.status = status;
     }
 
-    const alunos = await this.prisma.alunos.findMany({
-      include: {
-        plano: true,
-        alunosGraducoes: {
-          include: {
-            modalidade: true,
-          },
-        },
-      },
+    const alunos = await this.alunosRepository.find({
+      relations: ['plano', 'alunosGraduacoes.modalidade'],
       where: whereClause,
     });
 
@@ -234,7 +233,7 @@ export class AlunosService {
   }
 
   async put({ id, ...body }: any) {
-    const aluno = await this.prisma.alunos.findUnique({
+    const aluno = await this.alunosRepository.findOne({
       where: {
         id,
       },
@@ -244,34 +243,29 @@ export class AlunosService {
       throw new NotFoundException({ error: 'Aluno não encontrado' });
     }
 
-    const updatedAluno = await this.prisma.alunos.update({
-      where: {
-        id: aluno.id,
-      },
-      data: {
-        nome: body.nome,
-        cep: body.cep,
-        cidade: body.cidade,
-        cpf: body.cpf,
-        estado: body.estado,
-        numero: body.numero,
-        planosId: body.plano,
-        rua: body.rua,
-        telefone: body.telefone,
-        status: body.status,
-      },
+    const updatedAluno = await this.alunosRepository.update(aluno.id, {
+      nome: body.nome,
+      cep: body.cep,
+      cidade: body.cidade,
+      cpf: body.cpf,
+      estado: body.estado,
+      numero: body.numero,
+      planosId: body.plano,
+      rua: body.rua,
+      telefone: body.telefone,
+      status: body.status,
     });
 
     if (body.modalidades && body.modalidades.length > 0) {
-      await this.prisma.alunosGraducao.deleteMany({
-        where: {
-          alunosId: aluno.id,
-        },
-      });
+      await this.alunosGraduacaoRepository
+        .createQueryBuilder()
+        .delete()
+        .where('alunosId = :id', { id: aluno.id })
+        .execute();
 
       await Promise.all(
         body.modalidades.map(async (modalidade: string) => {
-          const graduacao = await this.prisma.graduacoes.findFirst({
+          const graduacao = await this.graduacoesRepository.findOne({
             where: {
               modalidadesId: modalidade,
               deleted: null,
@@ -289,9 +283,7 @@ export class AlunosService {
             data.graduacoesId = graduacao.id;
           }
 
-          await this.prisma.alunosGraducao.create({
-            data,
-          });
+          await this.alunosGraduacaoRepository.save(data);
         }),
       );
     }
@@ -300,7 +292,7 @@ export class AlunosService {
   }
 
   async delete(id: string) {
-    const aluno = await this.prisma.alunos.findUnique({
+    const aluno = await this.alunosRepository.findOne({
       where: {
         id,
       },
@@ -310,32 +302,25 @@ export class AlunosService {
       throw new NotFoundException({ error: 'Aluno não encontrado' });
     }
 
-    const deletedAluno = await this.prisma.alunos.update({
-      data: {
-        deleted: new Date(),
-      },
-      where: {
-        id: aluno.id,
-      },
+    const deletedAluno = await this.alunosRepository.update(aluno.id, {
+      deleted: new Date(),
     });
 
-    await this.prisma.alunosExamesGraducao.updateMany({
-      data: {
+    await this.alunosExameGraduacaoRepository.update(
+      { alunosId: aluno.id },
+      {
         deleted: new Date(),
       },
-      where: {
-        alunosId: aluno.id,
-      },
-    });
+    );
 
-    await this.prisma.cobrancas.updateMany({
-      data: {
-        deleted: new Date(),
-      },
-      where: {
+    await this.cobrancasRepository.update(
+      {
         alunosId: aluno.id,
       },
-    });
+      {
+        deleted: new Date(),
+      },
+    );
 
     return deletedAluno;
   }

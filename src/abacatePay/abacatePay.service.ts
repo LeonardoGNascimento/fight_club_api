@@ -1,18 +1,28 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/_core/prisma.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CobrancasCliente } from '../_core/entity/cobrancas-cliente.entity';
+import { Repository } from 'typeorm';
+import { CobrancasClienteItems } from '../_core/entity/cobrancas-cliente-items.entity';
 
 @Injectable()
 export class AbacatePayService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @InjectRepository(CobrancasCliente)
+    private cobrancasRepository: Repository<CobrancasCliente>,
+    @InjectRepository(CobrancasClienteItems)
+    private cobrancasItemsRepository: Repository<CobrancasClienteItems>,
+    @InjectRepository(CobrancasCliente)
+    private cobrancasClienteRepository: Repository<CobrancasCliente>,
+  ) {}
 
   async gerarPix(id: string) {
-    const mensalidade = await this.prisma.cobrancasCliente.findFirst({
+    const mensalidade = await this.cobrancasRepository.findOne({
       where: {
         id,
       },
     });
 
-    const preco = await this.prisma.cobrancasClienteItems.findMany({
+    const preco = await this.cobrancasItemsRepository.find({
       where: {
         cobrancasClienteId: id,
       },
@@ -44,13 +54,8 @@ export class AbacatePayService {
   }
 
   async baixa(id: string) {
-    await this.prisma.cobrancasCliente.update({
-      where: {
-        id: id.split(':')[1],
-      },
-      data: {
-        pago: true,
-      },
+    await this.cobrancasClienteRepository.update(id.split(':')[1], {
+      pago: true,
     });
   }
 }

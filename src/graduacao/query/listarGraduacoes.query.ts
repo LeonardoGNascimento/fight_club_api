@@ -8,7 +8,6 @@ export interface ListarGraduacoesQuery {
   alunosId: string;
   graduacoesId: string;
   modalidadesId: string;
-  deleted: Date;
   turmasId: string;
   turmas: Turmas;
   graduacao: Graduacoes;

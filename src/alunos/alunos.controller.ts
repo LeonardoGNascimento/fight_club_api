@@ -46,7 +46,7 @@ export class AlunosController {
   }
 
   @Patch('/:id/modalidade/:modalidadeId/graduacao/:graduacaoId')
-  atualizarGraduacao(@Param() atualizarGraduacaoDto: AtualizarGraduacaoDto) {
+  cadastrarGraduacao(@Param() atualizarGraduacaoDto: AtualizarGraduacaoDto) {
     return this.alunosService.atualizarGraduacao(atualizarGraduacaoDto);
   }
 

@@ -14,6 +14,16 @@ import { CobrancaModule } from './cobrancas/cobranca.module';
 import { GraduacaoModule } from './graduacao/graduacao.module';
 import { PrecoModule } from './precos/precos.module';
 import { TurmaModule } from './turmas/turma.module';
+import { Planos } from './_core/entity/planos.entity';
+import { Agendas } from './_core/entity/agendas.entity';
+import { Alunos } from './_core/entity/alunos.entity';
+import { Modalidades } from './_core/entity/modalidades.entity';
+import { Cobrancas } from './_core/entity/cobrancas.entity';
+import { ClienteModulos } from './_core/entity/cliente-modulos.entity';
+import { Precos } from './_core/entity/precos.entity';
+import { Clientes } from './_core/entity/clientes.entity';
+import { CobrancasCliente } from './_core/entity/cobrancas-cliente.entity';
+import { CobrancasClienteItems } from './_core/entity/cobrancas-cliente-items.entity';
 
 @Module({
   imports: [
@@ -21,12 +31,24 @@ import { TurmaModule } from './turmas/turma.module';
       type: 'mysql',
       host: '137.184.182.255',
       port: 3306,
-      username: 'admin',
-      password: 'c3fbd71943f44829cd06',
-      database: 'dojoplanner',
+      username: 'root',
+      password: '081a763bbe7dbdeaa5e2',
+      database: 'dojoplanner2',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: false,
+      synchronize: true,
     }),
+    TypeOrmModule.forFeature([
+      Planos,
+      Agendas,
+      Alunos,
+      Modalidades,
+      Cobrancas,
+      ClienteModulos,
+      Precos,
+      Clientes,
+      CobrancasCliente,
+      CobrancasClienteItems
+    ]),
     ConfigModule.forRoot({
       isGlobal: true,
     }),

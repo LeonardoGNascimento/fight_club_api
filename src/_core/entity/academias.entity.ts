@@ -34,7 +34,7 @@ export class Academias {
   @Column()
   clienteId: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   deleted: Date;
 
   // Relacionamento com Clientes

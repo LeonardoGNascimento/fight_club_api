@@ -1,34 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { addDays, endOfMonth, format } from 'date-fns';
-import { PrismaService } from 'src/_core/prisma.service';
-import { Agendas } from '@prisma/client';
-import { CriarTurmaDto } from './DTO/criarTurma.dto';
-import { Turmas } from '../_core/entity/turmas.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
+import { Agendas } from '../_core/entity/agendas.entity';
+import { AlunosGraducao } from '../_core/entity/alunos-graducao.entity';
 
 @Injectable()
 export class AgendaService {
   constructor(
-    private prisma: PrismaService,
-    @InjectRepository(Turmas) private turmaRepository: Repository<Turmas>,
+    @InjectRepository(Agendas) private agendaRepository: Repository<Agendas>,
+    @InjectRepository(AlunosGraducao)
+    private alunosGraduacaoService: Repository<AlunosGraducao>,
   ) {}
 
-  async listarTurmas(academiaId: string): Promise<Turmas[]> {
-    return await this.turmaRepository.find({
-      where: {
-        modalidade: {
-          academiasId: academiaId,
-        },
-      },
-    });
-  }
-
   async listar(academiaId: string): Promise<Agendas[]> {
-    const aulas = await this.prisma.agendas.findMany({
-      include: {
-        modalidade: true,
-      },
+    const aulas = await this.agendaRepository.find({
+      relations: ['modalidade'],
       where: {
         academiasId: String(academiaId),
         deleted: null,
@@ -48,55 +35,27 @@ export class AgendaService {
   }
 
   async detalhes(id: string) {
-    const aula = await this.prisma.agendas.findFirst({
-      include: {
-        Chamada: {
-          include: {
-            aluno: true,
-          },
-        },
-        modalidade: {
-          include: {
-            graduacoes: true,
-          },
-        },
-      },
+    const aula = await this.agendaRepository.findOne({
+      relations: ['chamada.aluno', 'modalidade.graduacoes'],
       where: {
         id,
         deleted: null,
       },
     });
 
-    const alunos = await this.prisma.alunosGraducao.findMany({
-      include: {
-        aluno: true,
-        graduacao: true,
-      },
-      where: {
-        modalidadesId: aula.modalidadesId,
-      },
+    const alunos = await this.alunosGraduacaoService.find({
+      relations: ['aluno', 'graduacao'],
+      where: { modalidadesId: aula.modalidadesId },
     });
 
     return { aula, alunos };
   }
 
-  async criarTurma(body: CriarTurmaDto): Promise<Turmas> {
-    return this.turmaRepository.save({
-      ...body,
-      modalidadesId: body.modalidadeId,
-    });
-  }
-
   async criar(body: any): Promise<boolean> {
     if (body.id) {
-      await this.prisma.agendas.update({
-        data: {
-          dataInicio: new Date(`${body.data} ${body.inicio}`),
-          dataFinal: new Date(`${body.data} ${body.fim}`),
-        },
-        where: {
-          id: String(body.id),
-        },
+      await this.agendaRepository.update(body.id, {
+        dataInicio: new Date(`${body.data} ${body.inicio}`),
+        dataFinal: new Date(`${body.data} ${body.fim}`),
       });
 
       return true;
@@ -137,15 +96,17 @@ export class AgendaService {
       }
     }
 
-    await this.prisma.agendas.createMany({
-      data: datas,
-    });
+    await Promise.all(
+      datas.map(async (item) => {
+        await this.agendaRepository.save(item);
+      }),
+    );
 
     return true;
   }
 
   async delete(id: string) {
-    await this.prisma.agendas.delete({ where: { id: String(id) } });
+    await this.agendaRepository.delete(id);
 
     return true;
   }
@@ -155,20 +116,15 @@ export class AgendaService {
     const startOfDay = new Date(now.setHours(0, 0, 0, 0));
     const endOfDay = new Date(now.setHours(23, 59, 59, 999));
 
-    const aulas = await this.prisma.agendas.findMany({
-      include: {
-        modalidade: true,
+    const aulas = await this.agendaRepository.find({
+      relations: ['modalidade'],
+      order: {
+        dataInicio: 'asc',
       },
       where: {
         academiasId: String(academiaId),
-        dataInicio: {
-          gte: startOfDay, // Maior ou igual ao início do dia
-          lte: endOfDay, // Menor ou igual ao fim do dia
-        },
         deleted: null,
-      },
-      orderBy: {
-        dataInicio: 'asc',
+        dataInicio: Between(startOfDay, endOfDay),
       },
     });
 

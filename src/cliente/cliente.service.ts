@@ -1,15 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/_core/prisma.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CobrancasCliente } from '../_core/entity/cobrancas-cliente.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ClienteService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @InjectRepository(CobrancasCliente)
+    private cobrancasClientesRepository: Repository<CobrancasCliente>,
+  ) {}
 
   async mensalidade(clientesId: string) {
-    return this.prisma.cobrancasCliente.findMany({
-      include: {
-        items: true,
-      },
+    return this.cobrancasClientesRepository.find({
+      relations: ['items'],
       where: {
         clientesId,
       },

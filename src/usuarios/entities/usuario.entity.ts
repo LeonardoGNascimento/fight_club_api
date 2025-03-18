@@ -38,12 +38,12 @@ export class UsuariosEntity {
   clienteId: string;
 
   @CreateDateColumn({
-    default: Date.now,
+    default: () => 'CURRENT_TIMESTAMP'
   })
   createdAt: Date;
 
   @UpdateDateColumn({
-    default: Date.now,
+    default: () => 'CURRENT_TIMESTAMP'
   })
   updatedAt: Date;
 

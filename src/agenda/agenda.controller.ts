@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { AgendaService } from './agenda.service';
 import { Agendas } from '@prisma/client';
-import { CriarTurmaDto } from './DTO/criarTurma.dto';
+import { CriarTurmaDto } from './dto/criarTurma.dto';
 import { Turmas } from '../_core/entity/turmas.entity';
 import { GetUser } from '../_core/getUser.decorator';
 import { User } from '../@types/user';
@@ -20,12 +20,6 @@ export class AgendaController {
     return this.service.proximos(user.academiaId);
   }
 
-  @Get('/turma')
-  async listarTurma(@GetUser() user: User) {
-    console.log(user);
-    return this.service.listarTurmas(user.academiaId);
-  }
-
   @Get(':id')
   detalhes(@Param('id') id: string) {
     return this.service.detalhes(id);
@@ -37,11 +31,6 @@ export class AgendaController {
       ...body,
       academiaId: user.academiaId,
     });
-  }
-
-  @Post('/turma')
-  criarTurma(@Body() body: CriarTurmaDto): Promise<Turmas> {
-    return this.service.criarTurma(body);
   }
 
   @Delete(':id')

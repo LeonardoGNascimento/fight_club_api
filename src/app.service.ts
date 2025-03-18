@@ -1,25 +1,53 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from './_core/prisma.service';
 import {
   differenceInDays,
   format,
   getDaysInMonth,
   lastDayOfMonth,
 } from 'date-fns';
-import { RedisService } from './_core/redis.config';
-import { Cobrancas } from '@prisma/client';
+import { Precos } from './_core/entity/precos.entity';
+import { Between, LessThan, Not, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CobrancasClienteItemsTipo } from './_core/entity/cobrancas-cliente-items-tipo.enum';
+import { Clientes } from './_core/entity/clientes.entity';
+import { CobrancasCliente } from './_core/entity/cobrancas-cliente.entity';
+import { ClienteModulos } from './_core/entity/cliente-modulos.entity';
+import { CobrancasClienteItems } from './_core/entity/cobrancas-cliente-items.entity';
+import { Cobrancas } from './_core/entity/cobrancas.entity';
+import { Alunos } from './_core/entity/alunos.entity';
+import { Modalidades } from './_core/entity/modalidades.entity';
+import { Planos } from './_core/entity/planos.entity';
+import { Agendas } from './_core/entity/agendas.entity';
 
 @Injectable()
 export class AppService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @InjectRepository(Planos)
+    private planosRepository: Repository<Planos>,
+    @InjectRepository(Agendas)
+    private agendasRepository: Repository<Agendas>,
+    @InjectRepository(Alunos)
+    private alunosRepository: Repository<Alunos>,
+    @InjectRepository(Modalidades)
+    private modalidadesRepository: Repository<Modalidades>,
+    @InjectRepository(Cobrancas)
+    private cobrancasRepository: Repository<Cobrancas>,
+    @InjectRepository(ClienteModulos)
+    private clienteModulosRepository: Repository<ClienteModulos>,
+    @InjectRepository(Precos) private precosRepository: Repository<Precos>,
+    @InjectRepository(Clientes)
+    private clientesRepository: Repository<Clientes>,
+    @InjectRepository(CobrancasCliente)
+    private cobrancasClienteRepository: Repository<CobrancasCliente>,
+    @InjectRepository(CobrancasClienteItems)
+    private cobrancasClienteItemsRepository: Repository<CobrancasClienteItems>,
+  ) {}
 
   async cobrar() {
-    const clientes = await this.prisma.clientes.findMany({
+    const clientes = await this.clientesRepository.find({
       where: {
         deleted: null,
-        desconto: {
-          not: 100,
-        },
+        desconto: Not(100),
       },
     });
 
@@ -29,55 +57,44 @@ export class AppService {
     const ultimoDia = lastDayOfMonth(dataAtual);
 
     for (const cliente of clientes) {
-      let cobranca = await this.prisma.cobrancasCliente.findFirst({
+      let cobranca = await this.cobrancasClienteRepository.findOne({
         where: {
           clientesId: cliente.id,
           deleted: null,
-          AND: [
-            {
-              dataHora: {
-                gte: new Date(`${anoAtual}-${mes}-01`),
-              },
-            },
-            {
-              dataHora: {
-                lt: ultimoDia,
-              },
-            },
-          ],
+          dataHora: Between(
+            new Date(`${anoAtual}-${mes}-01`), // Start of the month
+            ultimoDia, // End date (exclusive)
+          ),
         },
       });
-
       if (!cobranca) {
-        cobranca = await this.prisma.cobrancasCliente.create({
-          data: {
-            clientesId: cliente.id,
-            vencimento: new Date(),
-            dataHora: new Date(),
-            pago: false,
-          },
+        cobranca = await this.cobrancasClienteRepository.save({
+          clientesId: cliente.id,
+          vencimento: new Date(),
+          dataHora: new Date(),
+          pago: false,
         });
       }
 
-      const precoAluno = await this.prisma.precos.findFirst({
+      const precoAluno = await this.precosRepository.findOne({
         where: {
-          tipo: 'ALUNO',
+          tipo: CobrancasClienteItemsTipo.ALUNO,
         },
       });
 
-      const precoModalidade = await this.prisma.precos.findFirst({
+      const precoModalidade = await this.precosRepository.findOne({
         where: {
-          tipo: 'MODALIDADE',
+          tipo: CobrancasClienteItemsTipo.MODALIDADE,
         },
       });
 
-      const precoPlano = await this.prisma.precos.findFirst({
+      const precoPlano = await this.precosRepository.findOne({
         where: {
-          tipo: 'PLANO',
+          tipo: CobrancasClienteItemsTipo.PLANO,
         },
       });
 
-      const modulos = await this.prisma.clienteModulos.findMany({
+      const modulos = await this.clienteModulosRepository.find({
         where: {
           clientesId: cliente.id,
           dataVencimento: null,
@@ -89,7 +106,7 @@ export class AppService {
 
       await Promise.all(
         modulos.map(async (modulo) => {
-          const jaCobrado = await this.prisma.cobrancasClienteItems.findFirst({
+          const jaCobrado = await this.cobrancasClienteItemsRepository.findOne({
             where: {
               cobrancasClienteId: cobranca.id,
               tipo: modulo.modulo,
@@ -100,42 +117,41 @@ export class AppService {
             return;
           }
 
-          const preco = await this.prisma.precos.findFirst({
+          const preco = await this.precosRepository.findOne({
             where: {
               tipo: modulo.modulo,
             },
           });
 
           if (preco) {
-            await this.prisma.cobrancasClienteItems.create({
-              data: {
-                dataHora: new Date(),
-                qtd: 1,
-                valor: (preco.valor / diasDoMes) * diasRestantesMes,
-                cobrancasClienteId: cobranca.id,
-                tipo: modulo.modulo,
-              },
+            await this.cobrancasClienteItemsRepository.save({
+              dataHora: new Date(),
+              qtd: 1,
+              valor: (preco.valor / diasDoMes) * diasRestantesMes,
+              cobrancasClienteId: cobranca.id,
+              tipo: modulo.modulo,
             });
           }
         }),
       );
 
       if (precoModalidade) {
-        const qtdModalidadesJaLancados = await this.prisma.cobrancasClienteItems
-          .findMany({
-            where: {
-              cobrancasClienteId: cobranca.id,
-              tipo: 'MODALIDADE',
-              deleted: null,
-            },
-          })
-          .then((itens) =>
-            itens.reduce((prev, curr) => {
-              return prev + curr.qtd;
-            }, 0),
-          );
+        const qtdModalidadesJaLancados =
+          await this.cobrancasClienteItemsRepository
+            .find({
+              where: {
+                cobrancasClienteId: cobranca.id,
+                tipo: CobrancasClienteItemsTipo.MODALIDADE,
+                deleted: null,
+              },
+            })
+            .then((itens) =>
+              itens.reduce((prev, curr) => {
+                return prev + curr.qtd;
+              }, 0),
+            );
 
-        const qtdModalidades = await this.prisma.modalidades.count({
+        const qtdModalidades = await this.modalidadesRepository.count({
           where: {
             academia: {
               clienteId: cliente.id,
@@ -148,34 +164,30 @@ export class AppService {
           qtdModalidades - qtdModalidadesJaLancados;
 
         if (qtdModalidadesParaLancar > 0) {
-          await this.prisma.cobrancasClienteItems.create({
-            data: {
-              dataHora: new Date(),
-              qtd: qtdModalidadesParaLancar,
-              valor: qtdModalidadesParaLancar * Number(precoModalidade.valor),
-              cobrancasClienteId: cobranca.id,
-              tipo: 'MODALIDADE',
-            },
+          await this.cobrancasClienteItemsRepository.save({
+            dataHora: new Date(),
+            qtd: qtdModalidadesParaLancar,
+            valor: qtdModalidadesParaLancar * Number(precoModalidade.valor),
+            cobrancasClienteId: cobranca.id,
+            tipo: CobrancasClienteItemsTipo.MODALIDADE,
           });
         }
       }
 
       if (precoPlano) {
-        const qtdPlanoJaLancados = await this.prisma.cobrancasClienteItems
-          .findMany({
-            where: {
-              cobrancasClienteId: cobranca.id,
-              tipo: 'PLANO',
-              deleted: null,
-            },
-          })
-          .then((itens) =>
-            itens.reduce((prev, curr) => {
-              return prev + curr.qtd;
-            }, 0),
-          );
+        const itens = await this.cobrancasClienteItemsRepository.find({
+          where: {
+            cobrancasClienteId: cobranca.id,
+            tipo: CobrancasClienteItemsTipo.PLANO,
+            deleted: null,
+          },
+        });
 
-        const qtdPlano = await this.prisma.planos.count({
+        const qtdPlanoJaLancados = itens.reduce((prev, curr) => {
+          return prev + curr.qtd;
+        }, 0);
+
+        const qtdPlano = await this.planosRepository.count({
           where: {
             academia: {
               clienteId: cliente.id,
@@ -187,34 +199,29 @@ export class AppService {
         const qtdParaLancar = qtdPlano - qtdPlanoJaLancados;
 
         if (qtdParaLancar > 0) {
-          await this.prisma.cobrancasClienteItems.create({
-            data: {
-              dataHora: new Date(),
-              qtd: qtdPlano - qtdPlanoJaLancados,
-              valor: (qtdPlano - qtdPlanoJaLancados) * Number(precoPlano.valor),
-              cobrancasClienteId: cobranca.id,
-              tipo: 'PLANO',
-            },
+          await this.cobrancasClienteItemsRepository.save({
+            dataHora: new Date(),
+            qtd: qtdPlano - qtdPlanoJaLancados,
+            valor: (qtdPlano - qtdPlanoJaLancados) * Number(precoPlano.valor),
+            cobrancasClienteId: cobranca.id,
+            tipo: CobrancasClienteItemsTipo.PLANO,
           });
         }
       }
 
       if (precoAluno) {
-        const qtdAlunosJaLancados = await this.prisma.cobrancasClienteItems
-          .findMany({
-            where: {
-              cobrancasClienteId: cobranca.id,
-              tipo: 'ALUNO',
-              deleted: null,
-            },
-          })
-          .then((itens) =>
-            itens.reduce((prev, curr) => {
-              return prev + curr.qtd;
-            }, 0),
-          );
+        const itens = await this.cobrancasClienteItemsRepository.find({
+          where: {
+            cobrancasClienteId: cobranca.id,
+            tipo: CobrancasClienteItemsTipo.ALUNO,
+            deleted: null,
+          },
+        });
 
-        const qtdAlunos = await this.prisma.alunos.count({
+        const qtdAlunosJaLancados = itens.reduce((prev, curr) => {
+          return prev + curr.qtd;
+        }, 0);
+        const qtdAlunos = await this.alunosRepository.count({
           where: {
             academia: {
               clienteId: cliente.id,
@@ -226,15 +233,12 @@ export class AppService {
         const qtdModalidadesParaLancar = qtdAlunos - qtdAlunosJaLancados;
 
         if (qtdModalidadesParaLancar > 0) {
-          await this.prisma.cobrancasClienteItems.create({
-            data: {
-              dataHora: new Date(),
-              qtd: qtdAlunos - qtdAlunosJaLancados,
-              valor:
-                (qtdAlunos - qtdAlunosJaLancados) * Number(precoAluno.valor),
-              cobrancasClienteId: cobranca.id,
-              tipo: 'ALUNO',
-            },
+          await this.cobrancasClienteItemsRepository.save({
+            dataHora: new Date(),
+            qtd: qtdAlunos - qtdAlunosJaLancados,
+            valor: (qtdAlunos - qtdAlunosJaLancados) * Number(precoAluno.valor),
+            cobrancasClienteId: cobranca.id,
+            tipo: CobrancasClienteItemsTipo.ALUNO,
           });
         }
       }
@@ -246,22 +250,17 @@ export class AppService {
     const startOfDay = new Date(now.setHours(0, 0, 0, 0));
     const endOfDay = new Date(now.setHours(23, 59, 59, 999));
 
-    const aulas = await this.prisma.agendas.findMany({
-      include: {
-        modalidade: true,
-      },
+    const aulas = await this.agendasRepository.find({
       where: {
         academia: {
           clienteId: academiaId,
         },
-        dataInicio: {
-          gte: startOfDay,
-          lte: endOfDay,
-        },
+        dataInicio: Between(startOfDay, endOfDay), // Filter by date range
         deleted: null,
       },
-      orderBy: {
-        dataInicio: 'asc',
+      relations: ['modalidade'], // Include the related 'modalidade' entity
+      order: {
+        dataInicio: 'ASC', // Order by 'dataInicio' in ascending order
       },
     });
 
@@ -277,22 +276,7 @@ export class AppService {
   }
 
   async atrasadas(clienteId: string): Promise<Cobrancas[]> {
-    // const cache = await this.cache.get<Cobrancas[]>(
-    //   `${clienteId}:dashboard-atrasadas`,
-    // );
-
-    // if (cache) {
-    //   return cache;
-    // }
-
-    const data = await this.prisma.cobrancas.findMany({
-      include: {
-        aluno: {
-          include: {
-            plano: true,
-          },
-        },
-      },
+    return await this.cobrancasRepository.find({
       where: {
         pago: false,
         deleted: null,
@@ -301,63 +285,28 @@ export class AppService {
             id: clienteId,
           },
         },
-        vencimento: {
-          lt: new Date(),
-        },
+        vencimento: LessThan(new Date()), // Equivalent to `lt: new Date()`
       },
+      relations: ['aluno', 'aluno.plano'], // Include the nested relations
     });
-
-    // await this.cache.set(`${clienteId}:dashboard-atrasadas`, data, 3600);
-
-    return data;
-  }
-
-  async lucro(academiaId: string) {
-    const resultado = await this.prisma.cobrancas.aggregate({
-      _sum: {
-        valor: true,
-      },
-      where: {
-        pago: true,
-        academia: {
-          id: academiaId,
-        },
-      },
-    });
-
-    return resultado._sum.valor ? resultado._sum.valor : null;
   }
 
   async prejuiso(clienteId: string) {
-    // const cache = await this.cache.get(`${clienteId}:dashboard-prejuiso`);
+    const resultado = await this.cobrancasRepository
+      .createQueryBuilder('cobranca')
+      .select('SUM(cobranca.valor)', 'sum') // Calculate the sum of 'valor'
+      .innerJoin('cobranca.academia', 'academia') // Join with 'academia' to filter by 'cliente'
+      .innerJoin('academia.cliente', 'cliente') // Join with 'cliente' to filter by 'clienteId'
+      .where('cobranca.pago = :pago', { pago: false })
+      .andWhere('cobranca.deleted IS NULL')
+      .andWhere('cobranca.vencimento < :currentDate', {
+        currentDate: new Date(),
+      })
+      .andWhere('cliente.id = :clienteId', { clienteId })
+      .getRawOne(); // Get the result as raw data
 
-    // if (cache) {
-    //   return cache;
-    // }
-
-    const resultado = await this.prisma.cobrancas.aggregate({
-      _sum: {
-        valor: true,
-      },
-      where: {
-        pago: false,
-        academia: {
-          cliente: {
-            id: clienteId,
-          },
-        },
-        vencimento: {
-          lt: new Date(),
-        },
-        deleted: null,
-      },
-    });
-
-    const result = resultado._sum.valor ? resultado._sum.valor : 0;
-
-    // await this.cache.set(`${clienteId}:dashboard-prejuiso`, result, 3600);
-
-    return result;
+    // Accessing the sum
+    return resultado ? resultado.sum : 0;
   }
 
   async mensalidade(clientesId: string) {
@@ -372,45 +321,20 @@ export class AppService {
     const anoAtual = format(dataAtual, 'yyyy');
     const ultimoDia = lastDayOfMonth(dataAtual);
 
-    const valor = await this.prisma.cobrancasClienteItems.aggregate({
-      _sum: {
-        valor: true,
-      },
-      where: {
-        deleted: null,
-        CobrancasCliente: {
-          clientesId,
-        },
-        dataHora: {
-          gte: new Date(`${anoAtual}-${mes}-01`),
-          lt: ultimoDia,
-        },
-      },
-    });
+    const valor = await this.cobrancasClienteItemsRepository
+      .createQueryBuilder('item')
+      .select('SUM(item.valor)', 'sum') // Calculate the sum of `valor`
+      .innerJoin('item.CobrancasCliente', 'cobranca') // Join with CobrancasCliente to filter by clientesId
+      .where('item.deleted IS NULL') // Ensure the item is not deleted
+      .andWhere('cobranca.clientesId = :clientesId', { clientesId }) // Filter by clientesId
+      .andWhere('item.dataHora >= :startDate', {
+        startDate: new Date(`${anoAtual}-${mes}-01`),
+      }) // Start date condition
+      .andWhere('item.dataHora < :endDate', { endDate: ultimoDia }) // End date condition
+      .getRawOne(); // Retrieve the result as raw data
 
     // await this.cache.set(`${clientesId}:dashboard-mensalidade`, valor['_sum'].valor, 3600);
 
-    return valor['_sum'].valor ?? 0;
-  }
-
-  async permissoes(clientesId: string) {
-    const ultimoDia = lastDayOfMonth(new Date());
-    ultimoDia.setHours(0, 0, 0, 0);
-
-    return await this.prisma.clienteModulos.findMany({
-      where: {
-        clientesId,
-        OR: [
-          {
-            dataVencimento: {
-              lt: ultimoDia,
-            },
-          },
-          {
-            dataVencimento: null,
-          },
-        ],
-      },
-    });
+    return valor ? valor.sum : 0;
   }
 }
