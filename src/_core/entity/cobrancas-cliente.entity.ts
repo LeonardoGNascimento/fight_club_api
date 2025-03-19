@@ -1,13 +1,21 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Clientes } from './clientes.entity';
 import { CobrancasClienteItems } from './cobrancas-cliente-items.entity';
 
-@Entity('CobrancasCliente')
+@Entity()
 export class CobrancasCliente {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'timestamp' })
+  @CreateDateColumn()
   dataHora: Date;
 
   @Column({ type: 'timestamp', nullable: true })
@@ -19,18 +27,12 @@ export class CobrancasCliente {
   @Column({ type: 'boolean' })
   pago: boolean;
 
-  @Column()
-  clientesId: string;
-
-  @Column({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn()
   deleted: Date;
 
-  // Relacionamento com a tabela Clientes
   @ManyToOne(() => Clientes, (cliente) => cliente.cobrancasCliente)
-  @JoinColumn({ name: 'clientesId' })
   cliente: Clientes;
 
-  // Relacionamento com CobrancasClienteItems
   @OneToMany(() => CobrancasClienteItems, (item) => item.cobrancasCliente)
   items: CobrancasClienteItems[];
 }

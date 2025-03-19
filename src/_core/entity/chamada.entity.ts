@@ -1,28 +1,23 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Alunos } from './alunos.entity';
+import {
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Agendas } from './agendas.entity';
+import { Alunos } from './alunos.entity';
 
-@Entity('Chamada')
+@Entity()
 export class Chamada {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn()
   dataHora: Date;
 
-  @Column()
-  agendasId: string;
-
-  @Column()
-  alunosId: string;
-
-  // Relacionamento com Alunos
   @ManyToOne(() => Alunos, (aluno) => aluno.chamada)
-  @JoinColumn({ name: 'alunosId' })
   aluno: Alunos;
 
-  // Relacionamento com Agendas
   @ManyToOne(() => Agendas, (agenda) => agenda.chamada)
-  @JoinColumn({ name: 'agendasId' })
   agenda: Agendas;
 }

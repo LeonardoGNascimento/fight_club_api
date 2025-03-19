@@ -6,18 +6,29 @@ import { ListarGraduacoesQuery } from './query/listarGraduacoes.query';
 
 @Controller('graduacoes')
 export class GraducaoController {
-  constructor(@InjectRepository(AlunosGraducao) private alunosGraduacaoRepository: Repository<AlunosGraducao>) {
-  }
+  constructor(
+    @InjectRepository(AlunosGraducao)
+    private alunosGraduacaoRepository: Repository<AlunosGraducao>,
+  ) {}
 
   @Get()
-  async listar(@Req() req): Promise<ListarGraduacoesQuery[]> {
+  async listar(@Req() req) {
     try {
       const graduacoes: AlunosGraducao[] = await this.alunosGraduacaoRepository
         .createQueryBuilder('alunosGraducao')
-        .innerJoinAndSelect('alunosGraducao.aluno', 'aluno', 'aluno.deleted IS NULL AND aluno.academiaId = :academiaId', { academiaId: req.user.academiaId })
+        .innerJoinAndSelect(
+          'alunosGraducao.aluno',
+          'aluno',
+          'aluno.deleted IS NULL AND aluno.academiaId = :academiaId',
+          { academiaId: req.user.academiaId },
+        )
         .innerJoinAndSelect('alunosGraducao.graduacao', 'graduacao')
         .leftJoinAndSelect('alunosGraducao.modalidade', 'modalidade')
-        .leftJoinAndSelect('modalidade.graduacoes', 'modalidadeGraduacao', 'modalidadeGraduacao.deleted IS NULL')
+        .leftJoinAndSelect(
+          'modalidade.graduacoes',
+          'modalidadeGraduacao',
+          'modalidadeGraduacao.deleted IS NULL',
+        )
         .where('alunosGraducao.deleted IS NULL')
         .orderBy('aluno.nome', 'ASC')
         .addOrderBy('graduacao.ordem', 'ASC')

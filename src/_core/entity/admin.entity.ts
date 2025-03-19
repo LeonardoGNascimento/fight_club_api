@@ -1,16 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Usuarios } from './usuarios.entity';
 
-@Entity('Admin')
+@Entity()
 export class Admin {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
-  email: string;
-
-  @Column()
-  password: string;
-
-  @Column({ nullable: true })
-  name: string;
+  @OneToOne(() => Usuarios, (usuario) => usuario.admin)
+  @JoinColumn()
+  usuario: Usuarios;
 }

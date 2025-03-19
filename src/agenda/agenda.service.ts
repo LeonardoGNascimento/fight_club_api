@@ -17,8 +17,9 @@ export class AgendaService {
     const aulas = await this.agendaRepository.find({
       relations: ['modalidade'],
       where: {
-        academiasId: String(academiaId),
-        deleted: null,
+        academia: {
+          id: academiaId,
+        },
       },
     });
 
@@ -45,7 +46,7 @@ export class AgendaService {
 
     const alunos = await this.alunosGraduacaoService.find({
       relations: ['aluno', 'graduacao'],
-      where: { modalidadesId: aula.modalidadesId },
+      where: { modalidade: { id: aula.modalidade.id } },
     });
 
     return { aula, alunos };
@@ -122,7 +123,9 @@ export class AgendaService {
         dataInicio: 'asc',
       },
       where: {
-        academiasId: String(academiaId),
+        academia: {
+          id: academiaId,
+        },
         deleted: null,
         dataInicio: Between(startOfDay, endOfDay),
       },

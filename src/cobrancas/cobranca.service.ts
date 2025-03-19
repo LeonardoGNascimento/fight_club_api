@@ -49,7 +49,9 @@ export class CobrancaService {
           tipo: TiposCobrancas.MENSALIDADE,
           valor: Number(item.plano.valor),
           vencimento: dataAtual,
-          academiasId: item.academiaId,
+          academia: {
+            id: item.academia.id,
+          },
           alunosId: item.id,
           dataHora: new Date(),
         });
@@ -80,7 +82,9 @@ export class CobrancaService {
 
     let cobranca = await this.cobrancasClienteRepository.findOne({
       where: {
-        clientesId,
+        cliente: {
+          id: clientesId,
+        },
         deleted: null,
         dataHora: Between(
           new Date(`${anoAtual}-${mes}-01`), // Start of the month

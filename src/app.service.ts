@@ -59,7 +59,9 @@ export class AppService {
     for (const cliente of clientes) {
       let cobranca = await this.cobrancasClienteRepository.findOne({
         where: {
-          clientesId: cliente.id,
+          cliente: {
+            id: cliente.id,
+          },
           deleted: null,
           dataHora: Between(
             new Date(`${anoAtual}-${mes}-01`), // Start of the month
@@ -96,7 +98,9 @@ export class AppService {
 
       const modulos = await this.clienteModulosRepository.find({
         where: {
-          clientesId: cliente.id,
+          cliente: {
+            id: cliente.id,
+          },
           dataVencimento: null,
         },
       });
@@ -108,7 +112,9 @@ export class AppService {
         modulos.map(async (modulo) => {
           const jaCobrado = await this.cobrancasClienteItemsRepository.findOne({
             where: {
-              cobrancasClienteId: cobranca.id,
+              cobrancasCliente: {
+                id: cobranca.id,
+              },
               tipo: modulo.modulo,
             },
           });
@@ -140,7 +146,9 @@ export class AppService {
           await this.cobrancasClienteItemsRepository
             .find({
               where: {
-                cobrancasClienteId: cobranca.id,
+                cobrancasCliente: {
+                  id: cobranca.id,
+                },
                 tipo: CobrancasClienteItemsTipo.MODALIDADE,
                 deleted: null,
               },
@@ -154,7 +162,9 @@ export class AppService {
         const qtdModalidades = await this.modalidadesRepository.count({
           where: {
             academia: {
-              clienteId: cliente.id,
+              cliente: {
+                id: cliente.id,
+              },
             },
             deleted: null,
           },
@@ -177,7 +187,9 @@ export class AppService {
       if (precoPlano) {
         const itens = await this.cobrancasClienteItemsRepository.find({
           where: {
-            cobrancasClienteId: cobranca.id,
+            cobrancasCliente: {
+              id: cobranca.id,
+            },
             tipo: CobrancasClienteItemsTipo.PLANO,
             deleted: null,
           },
@@ -190,7 +202,9 @@ export class AppService {
         const qtdPlano = await this.planosRepository.count({
           where: {
             academia: {
-              clienteId: cliente.id,
+              cliente: {
+                id: cliente.id,
+              },
             },
             deleted: null,
           },
@@ -212,7 +226,9 @@ export class AppService {
       if (precoAluno) {
         const itens = await this.cobrancasClienteItemsRepository.find({
           where: {
-            cobrancasClienteId: cobranca.id,
+            cobrancasCliente: {
+              id: cobranca.id,
+            },
             tipo: CobrancasClienteItemsTipo.ALUNO,
             deleted: null,
           },
@@ -224,7 +240,9 @@ export class AppService {
         const qtdAlunos = await this.alunosRepository.count({
           where: {
             academia: {
-              clienteId: cliente.id,
+              cliente: {
+                id: cliente.id,
+              },
             },
             deleted: null,
           },
@@ -253,7 +271,9 @@ export class AppService {
     const aulas = await this.agendasRepository.find({
       where: {
         academia: {
-          clienteId: academiaId,
+          cliente: {
+            id: academiaId,
+          },
         },
         dataInicio: Between(startOfDay, endOfDay), // Filter by date range
         deleted: null,

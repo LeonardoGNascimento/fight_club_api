@@ -1,15 +1,23 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { Academias } from './academias.entity'; // Relacionamento com Academias
-import { Modalidades } from './modalidades.entity'; // Relacionamento com Modalidades
-import { Professores } from './professores.entity'; // Relacionamento com Professores
-import { Chamada } from './chamada.entity'; // Relacionamento com Chamada
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Academias } from './academias.entity';
+import { Chamada } from './chamada.entity';
+import { Modalidades } from './modalidades.entity';
+import { Professores } from './professores.entity';
 
 export enum Tipo {
   AULA = 'AULA',
   EXAME = 'EXAME',
 }
 
-@Entity('Agendas')
+@Entity()
 export class Agendas {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -29,34 +37,20 @@ export class Agendas {
   @Column()
   dataFinal: Date;
 
-  @Column()
-  modalidadesId: string;
-
-  @Column()
-  academiasId: string;
-
-  @Column({ nullable: true })
-  professorId: string;
-
-  @Column({ type: 'datetime', nullable: true })
+  @DeleteDateColumn()
   deleted: Date;
 
-  // Relacionamento com Academias
   @ManyToOne(() => Academias, (academia) => academia.agendas)
-  @JoinColumn({ name: 'academiasId' })
   academia: Academias;
 
-  // Relacionamento com Modalidades
   @ManyToOne(() => Modalidades, (modalidade) => modalidade.agendas)
-  @JoinColumn({ name: 'modalidadesId' })
   modalidade: Modalidades;
 
-  // Relacionamento com Professores (opcional)
-  @ManyToOne(() => Professores, (professor) => professor.agenda, { nullable: true })
-  @JoinColumn({ name: 'professorId' })
+  @ManyToOne(() => Professores, (professor) => professor.agenda, {
+    nullable: true,
+  })
   professor: Professores;
 
-  // Relacionamento com Chamada
   @OneToMany(() => Chamada, (chamada) => chamada.agenda)
   chamada: Chamada[];
 }

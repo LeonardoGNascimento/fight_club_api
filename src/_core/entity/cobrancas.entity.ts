@@ -1,14 +1,21 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Academias } from './academias.entity';
 import { Alunos } from './alunos.entity';
 import { TiposCobrancas } from './tipos-cobrancas.enum';
 
-@Entity('Cobrancas')
+@Entity()
 export class Cobrancas {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn()
   dataHora: Date;
 
   @Column({ type: 'timestamp', nullable: true })
@@ -20,28 +27,18 @@ export class Cobrancas {
   @Column({ type: 'boolean', default: false })
   pago: boolean;
 
-  @Column()
-  alunosId: string;
-
-  @Column()
-  academiasId: string;
-
   @Column('int')
   valor: number;
 
   @Column({ type: 'enum', enum: TiposCobrancas })
   tipo: TiposCobrancas;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn()
   deleted: Date;
 
-  // Relacionamento com Academias
   @ManyToOne(() => Academias, (academia) => academia.cobrancas)
-  @JoinColumn({ name: 'academiasId' })
   academia: Academias;
 
-  // Relacionamento com Alunos
   @ManyToOne(() => Alunos, (aluno) => aluno.cobrancas)
-  @JoinColumn({ name: 'alunosId' })
   aluno: Alunos;
 }

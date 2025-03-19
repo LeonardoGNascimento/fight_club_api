@@ -8,8 +8,8 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { UsuarioRepository } from './repositories/usuario.repository';
 import { AdminRepository } from './repositories/admin.repository';
 import * as bcrypt from 'bcrypt';
-import { UsuariosEntity } from './entities/usuario.entity';
-import { AdminEntity } from './entities/admin.entity';
+import { Admin } from '../_core/entity/admin.entity';
+import { Usuarios } from 'src/_core/entity/usuarios.entity';
 
 @Injectable()
 export class UsuariosService {
@@ -18,8 +18,8 @@ export class UsuariosService {
     private readonly adminRepository: AdminRepository,
   ) {}
 
-  async create(createUsuarioDto: CreateUsuarioDto): Promise<UsuariosEntity> {
-    const existingUser: UsuariosEntity =
+  async create(createUsuarioDto: CreateUsuarioDto): Promise<Usuarios> {
+    const existingUser: Usuarios =
       await this.usuarioRepository.findByEmail(createUsuarioDto.email);
 
     if (existingUser) {
@@ -37,7 +37,7 @@ export class UsuariosService {
     });
   }
 
-  async findByEmail(email: string): Promise<UsuariosEntity> {
+  async findByEmail(email: string): Promise<Usuarios> {
     return await this.usuarioRepository.findByEmail(email);
   }
 
@@ -48,8 +48,8 @@ export class UsuariosService {
   async update(
     id: string,
     updateUsuarioDto: UpdateUsuarioDto,
-  ): Promise<UsuariosEntity> {
-    const usuario: UsuariosEntity = await this.usuarioRepository.findOne(id);
+  ): Promise<Usuarios> {
+    const usuario: Usuarios = await this.usuarioRepository.findOne(id);
 
     if (!usuario) {
       throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
@@ -66,7 +66,7 @@ export class UsuariosService {
   }
 
   async remove(id: string): Promise<void> {
-    const usuario: UsuariosEntity = await this.usuarioRepository.findOne(id);
+    const usuario: Usuarios = await this.usuarioRepository.findOne(id);
 
     if (!usuario) {
       throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
@@ -76,14 +76,14 @@ export class UsuariosService {
   }
 
   async createAdmin(usuarioId: string) {
-    const usuario: UsuariosEntity =
+    const usuario: Usuarios =
       await this.usuarioRepository.findOne(usuarioId);
 
     if (!usuario) {
       throw new NotFoundException(`Usuário com ID ${usuarioId} não encontrado`);
     }
 
-    const existingAdmin: AdminEntity =
+    const existingAdmin: Admin =
       await this.adminRepository.findByUsuarioId(usuarioId);
 
     if (existingAdmin) {
@@ -94,14 +94,14 @@ export class UsuariosService {
   }
 
   async removeAdmin(usuarioId: string): Promise<void> {
-    const usuario: UsuariosEntity =
+    const usuario: Usuarios =
       await this.usuarioRepository.findOne(usuarioId);
 
     if (!usuario) {
       throw new NotFoundException(`Usuário com ID ${usuarioId} não encontrado`);
     }
 
-    const admin: AdminEntity =
+    const admin: Admin =
       await this.adminRepository.findByUsuarioId(usuarioId);
 
     if (!admin) {

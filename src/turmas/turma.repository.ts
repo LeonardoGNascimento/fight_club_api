@@ -26,7 +26,7 @@ export class TurmaRepository {
     }
 
     if (modalidadeId) {
-      turma.modalidadesId = modalidadeId;
+      turma.modalidade.id = modalidadeId;
     }
 
     const [data, error] = await async(this.turmaRepository.save(turma));
@@ -79,7 +79,9 @@ export class TurmaRepository {
       this.turmaRepository.find({
         where: {
           modalidade: {
-            academiasId: academiaId,
+            academia: {
+              id: academiaId,
+            },
           },
         },
       }),

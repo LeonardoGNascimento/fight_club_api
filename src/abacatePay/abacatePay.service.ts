@@ -24,7 +24,9 @@ export class AbacatePayService {
 
     const preco = await this.cobrancasItemsRepository.find({
       where: {
-        cobrancasClienteId: id,
+        cobrancasCliente: {
+          id
+        }
       },
     });
 

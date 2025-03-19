@@ -1,20 +1,28 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
-import { Agendas } from './agendas.entity';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Academias } from './academias.entity';
+import { Agendas } from './agendas.entity';
 
 export enum Status {
   ATIVO = 'ATIVO',
   INATIVO = 'INATIVO',
   PENDENTE = 'PENDENTE',
-  DEVENDO = 'DEVENDO'
+  DEVENDO = 'DEVENDO',
 }
 
-@Entity('Professores')
+@Entity()
 export class Professores {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn()
   dataHora: Date;
 
   @Column()
@@ -59,21 +67,15 @@ export class Professores {
   @Column()
   nascimento: Date;
 
-  @Column()
-  academiaId: string;
-
   @Column({ type: 'enum', enum: Status, default: Status.ATIVO })
   status: Status;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn()
   deleted: Date;
 
-  // Relacionamento com Agendas
   @OneToMany(() => Agendas, (agenda) => agenda.professor)
   agenda: Agendas[];
 
-  // Relacionamento com Academias
   @ManyToOne(() => Academias, (academia) => academia.professores)
-  @JoinColumn({ name: 'academiaId' })
   academia: Academias;
 }

@@ -85,7 +85,9 @@ export class AlunosService {
 
     const alunosAtivos: number = await this.alunosRepository.count({
       where: {
-        academiaId,
+        academia: {
+          id: academiaId,
+        },
         deleted: null,
       },
     });
@@ -104,8 +106,12 @@ export class AlunosService {
   async atualizarGraduacao(atualizarGraduacaoDto: AtualizarGraduacaoDto) {
     const alunoModalidade = await this.alunosGraduacaoRepository.findOne({
       where: {
-        alunosId: atualizarGraduacaoDto.id,
-        modalidadesId: atualizarGraduacaoDto.modalidadeId,
+        aluno: {
+          id: atualizarGraduacaoDto.id,
+        },
+        modalidade: {
+          id: atualizarGraduacaoDto.modalidadeId,
+        },
       },
     });
 
@@ -114,9 +120,15 @@ export class AlunosService {
     }
 
     await this.alunosGraduacaoRepository.save({
-      graduacoesId: atualizarGraduacaoDto.graduacaoId,
-      alunosId: atualizarGraduacaoDto.id,
-      modalidadesId: atualizarGraduacaoDto.modalidadeId,
+      graduacao: {
+        id: atualizarGraduacaoDto.graduacaoId,
+      },
+      aluno: {
+        id: atualizarGraduacaoDto.id,
+      },
+      modalidade: {
+        id: atualizarGraduacaoDto.modalidadeId,
+      },
     });
 
     return true;
@@ -158,7 +170,9 @@ export class AlunosService {
         body.modalidades.map(async (item) => {
           const graduacao = await this.graduacoesRepository.findOne({
             where: {
-              modalidadesId: item,
+              modalidade: {
+                id: item,
+              },
               deleted: null,
               ordem: 1,
             },
@@ -250,7 +264,9 @@ export class AlunosService {
       cpf: body.cpf,
       estado: body.estado,
       numero: body.numero,
-      planosId: body.plano,
+      plano: {
+        id: body.plano,
+      },
       rua: body.rua,
       telefone: body.telefone,
       status: body.status,
@@ -267,7 +283,9 @@ export class AlunosService {
         body.modalidades.map(async (modalidade: string) => {
           const graduacao = await this.graduacoesRepository.findOne({
             where: {
-              modalidadesId: modalidade,
+              modalidade: {
+                id: modalidade,
+              },
               deleted: null,
               ordem: 1,
             },
@@ -307,7 +325,11 @@ export class AlunosService {
     });
 
     await this.alunosExameGraduacaoRepository.update(
-      { alunosId: aluno.id },
+      {
+        aluno: {
+          id: aluno.id,
+        },
+      },
       {
         deleted: new Date(),
       },
@@ -315,7 +337,9 @@ export class AlunosService {
 
     await this.cobrancasRepository.update(
       {
-        alunosId: aluno.id,
+        aluno: {
+          id: aluno.id,
+        },
       },
       {
         deleted: new Date(),

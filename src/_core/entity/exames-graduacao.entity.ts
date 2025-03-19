@@ -1,33 +1,35 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn, CreateDateColumn } from 'typeorm';
+import {
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Academias } from './academias.entity'; // Relacionamento com Academias
-import { Modalidades } from './modalidades.entity'; // Relacionamento com Modalidades
 import { AlunosExamesGraducao } from './alunos-exames-graducao.entity'; // Relacionamento com AlunosExamesGraducao
+import { Modalidades } from './modalidades.entity'; // Relacionamento com Modalidades
 
-@Entity('ExamesGraduacao')
+@Entity()
 export class ExamesGraduacao {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
-  modalidadesId: string;
+  @CreateDateColumn()
+  dataHora: Date;
 
-  @Column()
-  academiasId: string;
-
-  @Column({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn()
   deleted: Date;
 
-  // Relacionamento com Academias
   @ManyToOne(() => Academias, (academia) => academia.examesGraduacoes)
-  @JoinColumn({ name: 'academiasId' })
   academia: Academias;
 
-  // Relacionamento com Modalidades
   @ManyToOne(() => Modalidades, (modalidade) => modalidade.examesGraduacoes)
-  @JoinColumn({ name: 'modalidadesId' })
   modalidade: Modalidades;
 
-  // Relacionamento com AlunosExamesGraducao
-  @OneToMany(() => AlunosExamesGraducao, (alunoExame) => alunoExame.examesGraduacao)
+  @OneToMany(
+    () => AlunosExamesGraducao,
+    (alunoExame) => alunoExame.examesGraduacao,
+  )
   alunosExamesGraducoes: AlunosExamesGraducao[];
 }

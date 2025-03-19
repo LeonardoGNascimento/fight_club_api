@@ -14,8 +14,8 @@ import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { AdminGuard } from '../auth/guards/admin.guard';
-import { AdminEntity } from './entities/admin.entity';
-import { UsuariosEntity } from './entities/usuario.entity';
+import { Admin } from '../_core/entity/admin.entity';
+import { Usuarios } from 'src/_core/entity/usuarios.entity';
 
 @Controller('usuarios')
 @UseGuards(JwtAuthGuard)
@@ -24,7 +24,7 @@ export class UsuariosController {
 
   @Post()
   @UseGuards(AdminGuard)
-  create(@Body() createUsuarioDto: CreateUsuarioDto): Promise<UsuariosEntity> {
+  create(@Body() createUsuarioDto: CreateUsuarioDto): Promise<Usuarios> {
     return this.usuariosService.create(createUsuarioDto);
   }
 
@@ -33,7 +33,7 @@ export class UsuariosController {
   update(
     @Param('id') id: string,
     @Body() updateUsuarioDto: UpdateUsuarioDto,
-  ): Promise<UsuariosEntity> {
+  ): Promise<Usuarios> {
     return this.usuariosService.update(id, updateUsuarioDto);
   }
 
@@ -46,7 +46,7 @@ export class UsuariosController {
 
   @Post(':id/admin')
   @UseGuards(AdminGuard)
-  createAdmin(@Param('id') id: string): Promise<AdminEntity> {
+  createAdmin(@Param('id') id: string): Promise<Admin> {
     return this.usuariosService.createAdmin(id);
   }
 

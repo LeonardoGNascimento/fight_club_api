@@ -1,32 +1,41 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { CobrancasCliente } from './cobrancas-cliente.entity';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { CobrancasClienteItemsTipo } from './cobrancas-cliente-items-tipo.enum'; // Enum para o tipo
+import { CobrancasCliente } from './cobrancas-cliente.entity';
 
-@Entity('CobrancasClienteItems')
+@Entity()
 export class CobrancasClienteItems {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'timestamp' })
+  @CreateDateColumn()
   dataHora: Date;
 
   @Column({ type: 'int' })
   valor: number;
 
-  @Column()
-  cobrancasClienteId: string;
-
   @Column({ type: 'int' })
   qtd: number;
 
-  @Column({ type: 'enum', enum: CobrancasClienteItemsTipo, default: CobrancasClienteItemsTipo.ALUNO })
+  @Column({
+    type: 'enum',
+    enum: CobrancasClienteItemsTipo,
+    default: CobrancasClienteItemsTipo.ALUNO,
+  })
   tipo: CobrancasClienteItemsTipo;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn()
   deleted: Date;
 
-  // Relacionamento com CobrancasCliente
-  @ManyToOne(() => CobrancasCliente, (cobrancasCliente) => cobrancasCliente.items)
-  @JoinColumn({ name: 'cobrancasClienteId' })
+  @ManyToOne(
+    () => CobrancasCliente,
+    (cobrancasCliente) => cobrancasCliente.items,
+  )
   cobrancasCliente: CobrancasCliente;
 }

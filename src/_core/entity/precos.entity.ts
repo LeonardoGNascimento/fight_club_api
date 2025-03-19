@@ -1,18 +1,24 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
 import { CobrancasClienteItemsTipo } from './cobrancas-cliente-items-tipo.enum';
 
-@Entity('Precos')
+@Entity()
 export class Precos {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn()
   dataHora: Date;
 
   @Column('int')
   valor: number;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn()
   deleted: Date;
 
   @Column({ nullable: true })

@@ -14,7 +14,9 @@ export class ClienteService {
     return this.cobrancasClientesRepository.find({
       relations: ['items'],
       where: {
-        clientesId,
+        cliente: {
+          id: clientesId,
+        },
       },
     });
   }

@@ -1,17 +1,28 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
-import { Clientes } from './clientes.entity';
-import { Alunos } from './alunos.entity';
-import { Planos } from './planos.entity';
-import { Modalidades } from './modalidades.entity';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Agendas } from './agendas.entity';
-import { ExamesGraduacao } from './exames-graduacao.entity';
+import { Alunos } from './alunos.entity';
+import { Clientes } from './clientes.entity';
 import { Cobrancas } from './cobrancas.entity';
+import { ExamesGraduacao } from './exames-graduacao.entity';
+import { Modalidades } from './modalidades.entity';
+import { Planos } from './planos.entity';
 import { Professores } from './professores.entity';
 
-@Entity('Academias')
+@Entity()
 export class Academias {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @CreateDateColumn()
+  dataHora: Date;
 
   @Column()
   nome: string;
@@ -31,18 +42,12 @@ export class Academias {
   @Column()
   numero: string;
 
-  @Column()
-  clienteId: string;
+  @DeleteDateColumn()
+  deleted?: Date;
 
-  @Column({ type: 'datetime', nullable: true })
-  deleted: Date;
-
-  // Relacionamento com Clientes
   @ManyToOne(() => Clientes, (cliente) => cliente.academias)
-  @JoinColumn({ name: 'clienteId' })
   cliente: Clientes;
 
-  // Relacionamentos OneToMany
   @OneToMany(() => Alunos, (aluno) => aluno.academia)
   alunos: Alunos[];
 

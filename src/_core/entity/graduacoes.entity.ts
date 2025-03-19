@@ -1,11 +1,22 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
-import { Modalidades } from './modalidades.entity';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { AlunosGraducao } from './alunos-graducao.entity'; // Relacionamento com Modalidades
+import { Modalidades } from './modalidades.entity';
 
-@Entity('Graduacoes')
+@Entity()
 export class Graduacoes {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @CreateDateColumn()
+  dataHora: Date;
 
   @Column()
   nome: string;
@@ -16,18 +27,12 @@ export class Graduacoes {
   @Column({ type: 'int', default: 0 })
   ordem: number;
 
-  @Column()
-  modalidadesId: string;
-
-  @Column({ type: 'timestamp', nullable: true })
+  @DeleteDateColumn()
   deleted: Date;
 
-  // Relacionamento com Modalidades
   @ManyToOne(() => Modalidades, (modalidade) => modalidade.graduacoes)
-  @JoinColumn({ name: 'modalidadesId' })
   modalidade: Modalidades;
 
-  // Relacionamento com AlunosGraducao
   @OneToMany(() => AlunosGraducao, (alunosGraducao) => alunosGraducao.graduacao)
   alunosGraducoes: AlunosGraducao[];
 }

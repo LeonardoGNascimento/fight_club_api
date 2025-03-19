@@ -1,28 +1,55 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  OneToOne,
+} from 'typeorm';
+import { Exclude } from 'class-transformer';
 import { Clientes } from './clientes.entity';
+import { Admin } from './admin.entity';
 
-@Entity('Usuarios')
+@Entity()
 export class Usuarios {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
-  nome: string;
-
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Column()
-  senha: string;
+  nome: string;
+
+  @Column({ nullable: true })
+  sobrenome: string;
+
+  @Exclude()
+  @Column()
+  password: string;
+
+  @Column({ nullable: true })
+  image: string;
+
+  @Column({ nullable: true })
+  emailVerified: boolean;
 
   @Column()
-  clienteId: string;
+  academiaId: string;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @Column({ nullable: true })
   deleted: Date;
 
-  // Relacionamento com a tabela Clientes
   @ManyToOne(() => Clientes, (cliente) => cliente.usuarios)
-  @JoinColumn({ name: 'clienteId' })
   cliente: Clientes;
+
+  @OneToOne(() => Admin, (admin) => admin.usuario)
+  admin: Admin;
 }
