@@ -35,7 +35,7 @@ import { CobrancasClienteItems } from './_core/entity/cobrancas-cliente-items.en
       password: '081a763bbe7dbdeaa5e2',
       database: 'dojoplanner2',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
+      synchronize: false,
     }),
     TypeOrmModule.forFeature([
       Planos,
