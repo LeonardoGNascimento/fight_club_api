@@ -24,6 +24,7 @@ import { Precos } from './_core/entity/precos.entity';
 import { Clientes } from './_core/entity/clientes.entity';
 import { CobrancasCliente } from './_core/entity/cobrancas-cliente.entity';
 import { CobrancasClienteItems } from './_core/entity/cobrancas-cliente-items.entity';
+import { ModalidadesModule } from './modalidades/modalidades.module';
 
 @Module({
   imports: [
@@ -36,7 +37,7 @@ import { CobrancasClienteItems } from './_core/entity/cobrancas-cliente-items.en
       database: 'dojoplanner2',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: false,
-    }),
+    }), 
     TypeOrmModule.forFeature([
       Planos,
       Agendas,
@@ -61,6 +62,7 @@ import { CobrancasClienteItems } from './_core/entity/cobrancas-cliente-items.en
     PrecoModule,
     GraduacaoModule,
     TurmaModule,
+    ModalidadesModule,
   ],
   controllers: [AppController],
   providers: [

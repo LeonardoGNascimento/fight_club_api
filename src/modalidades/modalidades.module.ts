@@ -10,6 +10,7 @@ import { Graduacoes } from '../_core/entity/graduacoes.entity';
 import { Planos } from '../_core/entity/planos.entity';
 import { AlunosExamesGraducao } from '../_core/entity/alunos-exames-graducao.entity';
 import { Cobrancas } from '../_core/entity/cobrancas.entity';
+import { Modalidades } from 'src/_core/entity/modalidades.entity';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { Cobrancas } from '../_core/entity/cobrancas.entity';
       Planos,
       AlunosExamesGraducao,
       Cobrancas,
+      Modalidades,
     ]),
     CobrancaModule,
   ],
