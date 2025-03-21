@@ -29,6 +29,11 @@ export class ModalidadesController {
     return this.modalidadesService.findAll(user.academiaId);
   }
 
+  @Get('contagem')
+  countAlunos(@GetUser() user: User): Promise<number> {
+    return this.modalidadesService.contagem(user.academiaId);
+  }
+
   @Get(':id')
   find(@Param('id') id: string): Promise<Modalidades> {
     return this.modalidadesService.find(id);

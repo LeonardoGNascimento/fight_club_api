@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CoreModule } from './_core/core.module';
@@ -28,16 +28,20 @@ import { ModalidadesModule } from './modalidades/modalidades.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: '137.184.182.255',
-      port: 3306,
-      username: 'root',
-      password: '081a763bbe7dbdeaa5e2',
-      database: 'dojoplanner2',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: false,
-    }), 
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'mysql',
+        host: config.get('DATABASE_HOST'),
+        port: 3306,
+        username: config.get('DATABASE_USER'),
+        password: config.get('DATABASE_PASSWORD'),
+        database: config.get('DATABASE_SCHEMA'),
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: false,
+      }),
+    }),
     TypeOrmModule.forFeature([
       Planos,
       Agendas,
@@ -48,7 +52,7 @@ import { ModalidadesModule } from './modalidades/modalidades.module';
       Precos,
       Clientes,
       CobrancasCliente,
-      CobrancasClienteItems
+      CobrancasClienteItems,
     ]),
     ConfigModule.forRoot({
       isGlobal: true,

@@ -66,4 +66,14 @@ export class ModalidadesService {
       },
     });
   }
+
+  async contagem(id: string): Promise<number> {
+    return await this.modalidadesRepository.count({
+      where: {
+        academia: {
+          id,
+        },
+      },
+    });
+  }
 }
