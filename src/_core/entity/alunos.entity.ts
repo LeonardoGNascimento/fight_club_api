@@ -36,6 +36,9 @@ export class Alunos {
   cpf: string;
 
   @Column()
+  dataNascimento: string;
+
+  @Column()
   rua: string;
 
   @Column()
@@ -59,6 +62,12 @@ export class Alunos {
   @DeleteDateColumn()
   deleted: Date;
 
+  @Column()
+  academiaId: string;
+
+  @Column()
+  planoId: string;
+
   @ManyToOne(() => Academias, (academia) => academia.alunos)
   academia: Academias;
 
@@ -72,7 +81,7 @@ export class Alunos {
   alunosExamesGraducoes: AlunosExamesGraducao[];
 
   @OneToMany(() => AlunosGraducao, (alunoGraducao) => alunoGraducao.aluno)
-  alunosGraducoes: AlunosGraducao[];
+  alunosGraduacoes: AlunosGraducao[];
 
   @OneToMany(() => Cobrancas, (cobranca) => cobranca.aluno)
   cobrancas: Cobrancas[];

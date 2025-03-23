@@ -10,6 +10,7 @@ import {
 import { Exclude } from 'class-transformer';
 import { Clientes } from './clientes.entity';
 import { Admin } from './admin.entity';
+import { Academias } from './academias.entity';
 
 @Entity()
 export class Usuarios {
@@ -38,6 +39,9 @@ export class Usuarios {
   @Column()
   academiaId: string;
 
+  @Column()
+  clienteId: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -49,6 +53,9 @@ export class Usuarios {
 
   @ManyToOne(() => Clientes, (cliente) => cliente.usuarios)
   cliente: Clientes;
+
+  @ManyToOne(() => Academias, (academia) => academia.usuarios)
+  academia: Academias;
 
   @OneToOne(() => Admin, (admin) => admin.usuario)
   admin: Admin;

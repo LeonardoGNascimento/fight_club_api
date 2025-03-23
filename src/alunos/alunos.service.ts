@@ -241,7 +241,7 @@ export class AlunosService {
     return alunos.map((item) => {
       return {
         ...item,
-        modalidades: item.alunosGraducoes.map((item2) => item2.modalidade.nome),
+        modalidades: item.alunosGraduacoes.map((item2) => item2.modalidade.nome),
       };
     });
   }

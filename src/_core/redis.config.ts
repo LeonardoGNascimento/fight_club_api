@@ -13,16 +13,16 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger: Logger;
 
   constructor(private readonly configService: ConfigService) {
-    // this.logger = new Logger(RedisService.name);
+    this.logger = new Logger(RedisService.name);
   }
 
   async onModuleInit(): Promise<void> {
-    // this.client = createClient({
-    //   url: this.configService.get('REDIS_URL'),
-    // });
+    this.client = createClient({
+      url: this.configService.get('REDIS_URL'),
+    });
 
-    // await this.client.connect();
-    // this.logger.log('Redis conectado com sucesso!');
+    await this.client.connect();
+    this.logger.log('Redis conectado com sucesso!');
   }
 
   async set<T>(key: string, value: T, ttl?: number): Promise<void> {

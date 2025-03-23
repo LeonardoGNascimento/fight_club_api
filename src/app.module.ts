@@ -32,7 +32,7 @@ import { ModalidadesModule } from './modalidades/modalidades.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        type: 'mysql',
+        type: 'mariadb',
         host: config.get('DATABASE_HOST'),
         port: 3306,
         username: config.get('DATABASE_USER'),

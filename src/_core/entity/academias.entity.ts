@@ -15,6 +15,7 @@ import { ExamesGraduacao } from './exames-graduacao.entity';
 import { Modalidades } from './modalidades.entity';
 import { Planos } from './planos.entity';
 import { Professores } from './professores.entity';
+import { Usuarios } from './usuarios.entity';
 
 @Entity()
 export class Academias {
@@ -68,4 +69,7 @@ export class Academias {
 
   @OneToMany(() => Professores, (professor) => professor.academia)
   professores: Professores[];
+
+  @OneToMany(() => Usuarios, (usuario) => usuario.academia)
+  usuarios: Usuarios[];
 }
