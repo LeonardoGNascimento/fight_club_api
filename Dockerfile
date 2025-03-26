@@ -1,13 +1,21 @@
-FROM node:22.14.0
+FROM node:22-alpine AS builder
 
 WORKDIR /app/api
 
-COPY ./package.json ./package-lock.json ./
+COPY package.json package-lock.json ./
 
-RUN npm install --legacy-peer-deps
+RUN npm ci --legacy-peer-deps
 
 COPY . .
 
 RUN npm run build
 
-ENTRYPOINT ["npm", "run", "start:prod"]
+FROM node:22-alpine AS runner
+
+WORKDIR /app/api
+
+COPY --from=builder /app/api/node_modules ./node_modules
+COPY --from=builder /app/api/dist ./dist
+COPY package.json ./
+
+CMD ["node", "dist/main.js"]
