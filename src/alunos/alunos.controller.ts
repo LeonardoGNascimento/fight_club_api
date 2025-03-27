@@ -13,17 +13,19 @@ import {
 import { AlunosService } from './alunos.service';
 import { AtualizarGraduacaoDto } from './dto/atualizarGraducao.dto';
 import { ListarAlunosQueryDto } from './dto/listarAlunos.dto';
+import { GetUser } from 'src/_core/getUser.decorator';
+import { User } from 'src/@types/user';
 
 @Controller('alunos')
 export class AlunosController {
   constructor(private readonly alunosService: AlunosService) {}
 
   @Post()
-  async create(@Body() body: any, @Req() req) {
+  async create(@Body() body: any, @GetUser() user: User) {
     return this.alunosService.create({
       ...body,
-      academiaId: req.user.academiaId,
-      clienteId: req.user.clienteId,
+      academiaId: user.academiaId,
+      clienteId: user.clienteId,
     });
   }
 

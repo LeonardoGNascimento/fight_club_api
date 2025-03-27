@@ -76,7 +76,7 @@ export class AlunosService {
         .where('cobrancaClienteItem.tipo = :tipo', {
           tipo: CobrancasClienteItemsTipo.ALUNO,
         })
-        .andWhere('cobrancasCliente.clientesId = :clientesId', { clientesId })
+        .andWhere('cobrancasCliente.clienteId = :clientesId', { clientesId })
         .andWhere('cobrancasCliente.dataHora BETWEEN :startDate AND :endDate', {
           startDate: `${anoAtual}-${mes}-01`,
           endDate: ultimoDia,
@@ -146,24 +146,24 @@ export class AlunosService {
       throw new NotFoundException({ error: 'Plano não encontrado' });
     }
 
-    const contagem = await this.contagem(
-      user.clienteId as string,
-      user.academiaId as string,
-    );
+    // const contagem = await this.contagem(
+    //   clienteId as string,
+    //   academiaId as string,
+    // );
 
-    const aluno = await this.alunosRepository.save({
-      academiaId: String(user.academiaId),
+    const aluno = await this.alunosRepository.save(this.alunosRepository.create({
+      academiaId: String(academiaId),
       nome: body.nome,
       cep: body.cep,
       cidade: body.cidade,
       cpf: body.cpf,
       estado: body.estado,
       numero: body.numero,
-      planosId: body.plano,
+      planoId: body.plano,
       rua: body.rua,
       telefone: body.telefone,
       status: plano.valor == '0' ? Status.ATIVO : Status.PENDENTE,
-    });
+    }));
 
     if (body.modalidades && body.modalidades.length > 0) {
       await Promise.all(
@@ -197,12 +197,12 @@ export class AlunosService {
       await this.cobrancaService.lancarCobrancasPorAluno(aluno.id);
     }
 
-    if (contagem.alunosAtivos === contagem.alunosPagos) {
-      await this.cobrancaService.lancarValor({
-        clientesId: user.clienteId as string,
-        tipo: 'ALUNO',
-      });
-    }
+    // if (contagem.alunosAtivos === contagem.alunosPagos) {
+    //   await this.cobrancaService.lancarValor({
+    //     clientesId: clienteId as string,
+    //     tipo: 'ALUNO',
+    //   });
+    // }
 
     return aluno;
   }
