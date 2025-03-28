@@ -311,6 +311,43 @@ export class AppService {
     });
   }
 
+  async dashboardAlunos(alunoId: string) {
+    const data = await this.alunosRepository.findOne({
+      relations: {
+        alunosGraduacoes: {
+          graduacao: true,
+          modalidade: {
+            graduacoes: true,
+          },
+        },
+      },
+      where: {
+        id: alunoId,
+      },
+    });
+
+    const graduacaoAtual = data.alunosGraduacoes
+      .sort((a, b) => a.graduacao.ordem - b.graduacao.ordem)
+      .at(-1);
+    const total = graduacaoAtual.modalidade.graduacoes.length;
+
+    const eventos = await this.agendasRepository.find({
+      where: {
+        modalidade: {
+          id: graduacaoAtual.modalidade.id,
+        },
+      },
+    });
+
+    return {
+      ...data,
+      graduacaoAtual: graduacaoAtual.graduacao,
+      eventos,
+      diasNaFaixa: differenceInDays(new Date(), graduacaoAtual.dataHora),
+      totalGraducoes: total,
+    };
+  }
+
   async prejuiso(clienteId: string) {
     const resultado = await this.cobrancasRepository
       .createQueryBuilder('cobranca')

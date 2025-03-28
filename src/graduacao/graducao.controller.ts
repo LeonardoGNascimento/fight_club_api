@@ -30,6 +30,9 @@ export class GraducaoController {
           'modalidadeGraduacao.deleted IS NULL',
         )
         .where('alunosGraducao.deleted IS NULL')
+        .andWhere(
+          'alunosGraducao.dataHora = (SELECT MAX(ag.dataHora) FROM alunos_graducao ag WHERE ag.alunoId = alunosGraducao.alunoId)',
+        )
         .orderBy('aluno.nome', 'ASC')
         .addOrderBy('graduacao.ordem', 'ASC')
         .getMany();

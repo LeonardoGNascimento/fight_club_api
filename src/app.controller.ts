@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Req } from '@nestjs/common';
+import { Controller, Get, Param, Post, Req } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Public } from './auth/decorators/public.decorator';
 import { Cobrancas } from './_core/entity/cobrancas.entity';
@@ -30,6 +30,11 @@ export class AppController {
   @Get('dashboard/proximos')
   proximos(@Req() req: any) {
     return this.service.proximos(req.user.academiaId);
+  }
+
+  @Get('/dashboard/alunos/:id')
+  async dashboardAlunos(@Param('id') id: string) {
+    return this.service.dashboardAlunos(id);
   }
 
   @Post('/interno/cliente/cobrar')
