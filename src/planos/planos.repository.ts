@@ -5,6 +5,7 @@ import { Planos } from 'src/_core/entity/planos.entity';
 import { Repository } from 'typeorm';
 import { CriarPlanoDto } from './dto/criarPlano.dto';
 import { ListarPlanosQuery } from './query/listarPlanos.query';
+import { EditarPlanoDto } from './dto/editarPlano.dto';
 
 @Injectable()
 export class PlanosRepository {
@@ -27,6 +28,20 @@ export class PlanosRepository {
     );
 
     return error ? null : data;
+  }
+
+  async buscar(id: string) {
+    const [data, error] = await async(
+      this.planosRepository.findOne({
+        where: {
+          id,
+        },
+      }),
+    );
+
+    if (error) return null;
+
+    return data;
   }
 
   async listar(academiaId: string): Promise<ListarPlanosQuery[]> {
@@ -54,5 +69,34 @@ export class PlanosRepository {
           dataHora: item.dataHora,
           deleted: item.deleted,
         }));
+  }
+
+  async editar({ id, nome, descricao, valor }: EditarPlanoDto) {
+    const [data, error] = await async(
+      this.planosRepository.update(
+        { id },
+        {
+          descricao,
+          nome,
+          valor,
+        },
+      ),
+    );
+
+    if (error) return null;
+
+    const [plano] = await async(
+      this.planosRepository.findOne({
+        where: { id },
+      }),
+    );
+
+    return plano;
+  }
+
+  async deletar(id: string) {
+    const [data, error] = await async(this.planosRepository.softDelete({ id }));
+
+    return !error;
   }
 }
