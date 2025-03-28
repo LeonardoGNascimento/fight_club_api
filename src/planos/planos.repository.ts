@@ -26,8 +26,6 @@ export class PlanosRepository {
       ),
     );
 
-    console.log(error);
-
     return error ? null : data;
   }
 

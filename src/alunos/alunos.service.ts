@@ -151,19 +151,21 @@ export class AlunosService {
     //   academiaId as string,
     // );
 
-    const aluno = await this.alunosRepository.save(this.alunosRepository.create({
-      academiaId: String(academiaId),
-      nome: body.nome,
-      cep: body.cep,
-      cidade: body.cidade,
-      cpf: body.cpf,
-      estado: body.estado,
-      numero: body.numero,
-      planoId: body.plano,
-      rua: body.rua,
-      telefone: body.telefone,
-      status: plano.valor == '0' ? Status.ATIVO : Status.PENDENTE,
-    }));
+    const aluno = await this.alunosRepository.save(
+      this.alunosRepository.create({
+        academiaId: String(academiaId),
+        nome: body.nome,
+        cep: body.cep,
+        cidade: body.cidade,
+        cpf: body.cpf,
+        estado: body.estado,
+        numero: body.numero,
+        planoId: body.plano,
+        rua: body.rua,
+        telefone: body.telefone,
+        status: plano.valor == '0' ? Status.ATIVO : Status.PENDENTE,
+      }),
+    );
 
     if (body.modalidades && body.modalidades.length > 0) {
       await Promise.all(
@@ -178,15 +180,15 @@ export class AlunosService {
             },
           });
 
-          const data: any = {
-            alunosId: aluno.id,
-            modalidadesId: item,
-            graduacoesId: null,
-          };
-
-          if (graduacao) {
-            data.graduacoesId = graduacao.id;
-          }
+          const data = this.alunosGraduacaoRepository.create({
+            aluno: { id: aluno.id },
+            modalidade: {
+              id: item,
+            },
+            graduacao: {
+              id: graduacao?.id,
+            },
+          });
 
           await this.alunosGraduacaoRepository.save(data);
         }),
@@ -208,42 +210,32 @@ export class AlunosService {
   }
 
   async findAll({ query, academiaId }: ListarAlunosDto) {
-    const modalidade = query.modalidade;
-    const plano = query.plano;
-    const status = query.status;
+    const { modalidade, plano, status } = query;
 
+    // Constrói a cláusula where de forma mais direta
     const whereClause: any = {
       academiaId,
       deleted: null,
+      ...(modalidade &&
+        modalidade !== 'all' && {
+          alunosGraduacoes: { modalidade: { id: modalidade } },
+        }),
+      ...(plano && plano !== 'all' && { plano: { id: plano } }),
+      ...(status && status !== 'all' && { status }),
     };
 
-    if (modalidade && modalidade !== 'all') {
-      whereClause.alunosGraducoes = {
-        some: {
-          modalidadesId: modalidade,
-        },
-      };
-    }
-
-    if (plano && plano !== 'all') {
-      whereClause.planosId = plano;
-    }
-
-    if (status && status !== 'all') {
-      whereClause.status = status;
-    }
-
     const alunos = await this.alunosRepository.find({
-      relations: ['plano', 'alunosGraduacoes.modalidade'],
+      relations: {
+        plano: true,
+        alunosGraduacoes: { modalidade: true },
+      },
       where: whereClause,
     });
 
-    return alunos.map((item) => {
-      return {
-        ...item,
-        modalidades: item.alunosGraduacoes.map((item2) => item2.modalidade.nome),
-      };
-    });
+    return alunos.map((item) => ({
+      ...item,
+      modalidades: item.alunosGraduacoes.map((item2) => item2.modalidade.nome),
+    }));
   }
 
   async put({ id, ...body }: any) {

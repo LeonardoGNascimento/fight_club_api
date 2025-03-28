@@ -22,7 +22,6 @@ export class UsuarioRepository {
       });
       return await this.repo.save(usuario);
     } catch (e) {
-      console.log(e);
       return null;
     }
   }
