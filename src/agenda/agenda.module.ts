@@ -13,6 +13,7 @@ import { ClienteModulos } from '../_core/entity/cliente-modulos.entity';
 import { Modalidades } from '../_core/entity/modalidades.entity';
 import { Planos } from '../_core/entity/planos.entity';
 import { AlunosGraducao } from '../_core/entity/alunos-graducao.entity';
+import { Chamada } from 'src/_core/entity/chamada.entity';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AlunosGraducao } from '../_core/entity/alunos-graducao.entity';
       ClienteModulos,
       Modalidades,
       Planos,
+      Chamada,
     ]),
   ],
   controllers: [AgendaController],

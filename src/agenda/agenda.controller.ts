@@ -1,10 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
-import { AgendaService } from './agenda.service';
-import { CriarTurmaDto } from './dto/criarTurma.dto';
-import { Turmas } from '../_core/entity/turmas.entity';
-import { GetUser } from '../_core/getUser.decorator';
-import { User } from '../@types/user';
 import { Agendas } from 'src/_core/entity/agendas.entity';
+import { User } from '../@types/user';
+import { GetUser } from '../_core/getUser.decorator';
+import { AgendaService } from './agenda.service';
 
 @Controller('agenda')
 export class AgendaController {
@@ -18,6 +16,11 @@ export class AgendaController {
   @Get('/proximos')
   proximos(@GetUser() user: User) {
     return this.service.proximos(user.academiaId);
+  }
+
+  @Get('aluno/:id/modalidade/:idModalidade/frequencia')
+  buscarFrequencia(@Param('id') id: string) {
+    return this.service.buscarFrequencia(id);
   }
 
   @Get(':id')

@@ -1,17 +1,91 @@
 import { Injectable } from '@nestjs/common';
-import { addDays, endOfMonth, format } from 'date-fns';
+import {
+  addDays,
+  endOfMonth,
+  endOfYear,
+  format,
+  getMonth,
+  getYear,
+  startOfYear,
+} from 'date-fns';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository } from 'typeorm';
+import { Between, In, Repository } from 'typeorm';
 import { Agendas } from '../_core/entity/agendas.entity';
 import { AlunosGraducao } from '../_core/entity/alunos-graducao.entity';
+import { Chamada } from 'src/_core/entity/chamada.entity';
+import { ptBR } from 'date-fns/locale';
 
 @Injectable()
 export class AgendaService {
   constructor(
     @InjectRepository(Agendas) private agendaRepository: Repository<Agendas>,
+    @InjectRepository(Chamada) private chamadaRepository: Repository<Chamada>,
     @InjectRepository(AlunosGraducao)
     private alunosGraduacaoService: Repository<AlunosGraducao>,
   ) {}
+
+  async buscarFrequencia(id: string) {
+    const anoAtual = new Date();
+    const mesAtual = getMonth(anoAtual) + 1
+    console.log(mesAtual);
+    
+    const inicioAno = startOfYear(anoAtual);
+    const fimAno = endOfYear(anoAtual);
+
+    const data = await this.agendaRepository.find({
+      where: {
+        dataInicio: Between(inicioAno, fimAno),
+        dataFinal: Between(inicioAno, fimAno),
+        modalidade: {
+          id: '6a34c98f-d98f-4327-9ab3-6b51af4f7131',
+        },
+      },
+    });
+
+    const totalFrequencia = await this.chamadaRepository.find({
+      relations: {
+        agenda: true,
+      },
+      where: {
+        agenda: In(data.map((item) => item.id)),
+        aluno: {
+          id: id,
+        },
+      },
+    });
+
+    const meses = new Map<
+      number,
+      { presencas: number; faltas: number; total: number }
+    >();
+
+    for (let i = 0; i < mesAtual; i++) {
+      meses.set(i, { presencas: 0, faltas: 0, total: 0 });
+    }
+
+    data.forEach((item) => {
+      const mes = getMonth(item.dataInicio);
+      const presencas = totalFrequencia.filter(
+        (presenca) => presenca.agenda.id === item.id,
+      ).length;
+      const totalMes = (meses.get(mes)?.total || 0) + 1;
+
+      meses.set(mes, {
+        presencas: (meses.get(mes)?.presencas || 0) + presencas,
+        faltas: totalMes - (meses.get(mes)?.presencas || 0) - presencas,
+        total: totalMes,
+      });
+    });
+
+    return Array.from(meses.entries()).map(([mes, valores]) => ({
+      mes: format(new Date(anoAtual.getFullYear(), mes, 1), 'MMMM', {
+        locale: ptBR,
+      }),
+      presencas: valores.presencas,
+      faltas: valores.faltas,
+      total: valores.total,
+    }));
+  }
 
   async listar(academiaId: string): Promise<Agendas[]> {
     const aulas = await this.agendaRepository.find({

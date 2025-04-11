@@ -60,7 +60,11 @@ export class AlunosService {
   async contagem(
     clientesId: string,
     academiaId: string,
-  ): Promise<{ alunosPagos: number; alunosAtivos: number }> {
+  ): Promise<{
+    alunosPagos: number;
+    alunosAtivos: number;
+    totalAlunos: number;
+  }> {
     const dataAtual = new Date();
     const mes: string = format(dataAtual, 'MM');
     const anoAtual: string = format(dataAtual, 'yyyy');
@@ -83,8 +87,18 @@ export class AlunosService {
         })
         .getMany();
 
+    const totalAlunos: number = await this.alunosRepository.count({
+      where: {
+        academia: {
+          id: academiaId,
+        },
+        deleted: null,
+      },
+    });
+
     const alunosAtivos: number = await this.alunosRepository.count({
       where: {
+        status: Status.ATIVO,
         academia: {
           id: academiaId,
         },
@@ -100,6 +114,7 @@ export class AlunosService {
         0,
       ),
       alunosAtivos,
+      totalAlunos,
     };
   }
 
