@@ -40,7 +40,7 @@ import { PlanosModule } from './planos/planos.module';
         password: config.get('DATABASE_PASSWORD'),
         database: config.get('DATABASE_SCHEMA'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: false,
+        synchronize: true,
       }),
     }),
     TypeOrmModule.forFeature([

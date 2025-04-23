@@ -9,10 +9,11 @@ import {
 } from 'typeorm';
 import { Academias } from './academias.entity';
 import { Agendas } from './agendas.entity';
-import { AlunosGraducao } from './alunos-graducao.entity';
+import { AlunosGraducaoHistorico } from './alunos-graducao-historico.entity';
 import { ExamesGraduacao } from './exames-graduacao.entity';
 import { Graduacoes } from './graduacoes.entity';
 import { Turmas } from './turmas.entity';
+import { AlunosModalidades } from './alunos-modalidades.entity';
 
 @Entity()
 export class Modalidades {
@@ -44,10 +45,16 @@ export class Modalidades {
   graduacoes: Graduacoes[];
 
   @OneToMany(
-    () => AlunosGraducao,
+    () => AlunosGraducaoHistorico,
     (alunoGraduacao) => alunoGraduacao.modalidade,
   )
-  alunosGraducoes: AlunosGraducao[];
+  alunosGraducoes: AlunosGraducaoHistorico[];
+
+  @OneToMany(
+    () => AlunosModalidades,
+    (alunosModalidades) => alunosModalidades.modalidade,
+  )
+  alunosModalidades: AlunosModalidades[];
 
   @OneToMany(() => Turmas, (turma) => turma.modalidade)
   Turmas: Turmas[];

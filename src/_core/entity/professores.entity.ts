@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Academias } from './academias.entity';
 import { Agendas } from './agendas.entity';
+import { Turmas } from './turmas.entity';
 
 export enum Status {
   ATIVO = 'ATIVO',
@@ -78,4 +79,7 @@ export class Professores {
 
   @ManyToOne(() => Academias, (academia) => academia.professores)
   academia: Academias;
+
+  @OneToMany(() => Turmas, (turma) => turma.professor)
+  turmas: Turmas[];
 }

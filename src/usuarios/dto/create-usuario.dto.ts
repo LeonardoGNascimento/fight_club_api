@@ -38,4 +38,6 @@ export class CreateUsuarioDto {
   @IsBoolean()
   @IsOptional()
   emailVerified?: boolean;
+
+  admin?: boolean
 }

@@ -6,21 +6,17 @@ import {
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { UsuarioRepository } from './repositories/usuario.repository';
-import { AdminRepository } from './repositories/admin.repository';
 import * as bcrypt from 'bcrypt';
-import { Admin } from '../_core/entity/admin.entity';
 import { Usuarios } from 'src/_core/entity/usuarios.entity';
 
 @Injectable()
 export class UsuariosService {
-  constructor(
-    private readonly usuarioRepository: UsuarioRepository,
-    private readonly adminRepository: AdminRepository,
-  ) {}
+  constructor(private readonly usuarioRepository: UsuarioRepository) {}
 
   async create(createUsuarioDto: CreateUsuarioDto): Promise<Usuarios> {
-    const existingUser: Usuarios =
-      await this.usuarioRepository.findByEmail(createUsuarioDto.email);
+    const existingUser: Usuarios = await this.usuarioRepository.findByEmail(
+      createUsuarioDto.email,
+    );
 
     if (existingUser) {
       throw new ConflictException('Email já está em uso');
@@ -42,7 +38,7 @@ export class UsuariosService {
   }
 
   async isAdmin(usuarioId: string): Promise<boolean> {
-    return !!(await this.adminRepository.findByUsuarioId(usuarioId));
+    return !!(await this.usuarioRepository.findOne(usuarioId)).admin;
   }
 
   async update(
@@ -76,38 +72,26 @@ export class UsuariosService {
   }
 
   async createAdmin(usuarioId: string) {
-    const usuario: Usuarios =
-      await this.usuarioRepository.findOne(usuarioId);
+    const usuario: Usuarios = await this.usuarioRepository.findOne(usuarioId);
 
     if (!usuario) {
       throw new NotFoundException(`Usuário com ID ${usuarioId} não encontrado`);
     }
 
-    const existingAdmin: Admin =
-      await this.adminRepository.findByUsuarioId(usuarioId);
-
-    if (existingAdmin) {
-      throw new ConflictException('Usuário já é um administrador');
-    }
-
-    return await this.adminRepository.create(usuarioId);
+    return await this.usuarioRepository.update(usuarioId, {
+      admin: true,
+    });
   }
 
   async removeAdmin(usuarioId: string): Promise<void> {
-    const usuario: Usuarios =
-      await this.usuarioRepository.findOne(usuarioId);
+    const usuario: Usuarios = await this.usuarioRepository.findOne(usuarioId);
 
     if (!usuario) {
       throw new NotFoundException(`Usuário com ID ${usuarioId} não encontrado`);
     }
 
-    const admin: Admin =
-      await this.adminRepository.findByUsuarioId(usuarioId);
-
-    if (!admin) {
-      throw new NotFoundException('Usuário não é um administrador');
-    }
-
-    await this.adminRepository.remove(usuarioId);
+    await this.usuarioRepository.update(usuarioId, {
+      admin: false,
+    });
   }
 }

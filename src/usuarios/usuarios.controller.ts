@@ -14,7 +14,6 @@ import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { AdminGuard } from '../auth/guards/admin.guard';
-import { Admin } from '../_core/entity/admin.entity';
 import { Usuarios } from 'src/_core/entity/usuarios.entity';
 
 @Controller('usuarios')
@@ -46,7 +45,7 @@ export class UsuariosController {
 
   @Post(':id/admin')
   @UseGuards(AdminGuard)
-  createAdmin(@Param('id') id: string): Promise<Admin> {
+  createAdmin(@Param('id') id: string): Promise<Usuarios> {
     return this.usuariosService.createAdmin(id);
   }
 

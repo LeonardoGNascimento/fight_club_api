@@ -8,11 +8,12 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Academias } from './academias.entity';
-import { AlunosExamesGraducao } from './alunos-exames-graducao.entity';
-import { AlunosGraducao } from './alunos-graducao.entity';
+import { ExamesGraducaoAlunos } from './exames-graducao-alunos.entity';
+import { AlunosGraducaoHistorico } from './alunos-graducao-historico.entity';
 import { Chamada } from './chamada.entity';
 import { Cobrancas } from './cobrancas.entity';
 import { Planos } from './planos.entity';
+import { AlunosModalidades } from './alunos-modalidades.entity';
 
 export enum Status {
   ATIVO = 'ATIVO',
@@ -75,13 +76,16 @@ export class Alunos {
   plano: Planos;
 
   @OneToMany(
-    () => AlunosExamesGraducao,
+    () => ExamesGraducaoAlunos,
     (alunoExameGraducao) => alunoExameGraducao.aluno,
   )
-  alunosExamesGraducoes: AlunosExamesGraducao[];
+  alunosExamesGraducoes: ExamesGraducaoAlunos[];
 
-  @OneToMany(() => AlunosGraducao, (alunoGraducao) => alunoGraducao.aluno)
-  alunosGraduacoes: AlunosGraducao[];
+  @OneToMany(() => AlunosGraducaoHistorico, (alunoGraducao) => alunoGraducao.aluno)
+  alunosGraduacoes: AlunosGraducaoHistorico[];
+
+  @OneToMany(() => AlunosModalidades, (alunosModalidades) => alunosModalidades.aluno)
+  alunosModalidades: AlunosModalidades[];
 
   @OneToMany(() => Cobrancas, (cobranca) => cobranca.aluno)
   cobrancas: Cobrancas[];

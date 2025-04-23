@@ -11,7 +11,7 @@ import { Modalidades } from './modalidades.entity';
 import { Turmas } from './turmas.entity';
 
 @Entity()
-export class AlunosGraducao {
+export class AlunosModalidades {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -21,17 +21,19 @@ export class AlunosGraducao {
   @DeleteDateColumn()
   deleted: Date;
 
-  @ManyToOne(() => Turmas, (turma) => turma.alunosGraducoes, { nullable: true })
-  turmas: Turmas;
-
-  @ManyToOne(() => Graduacoes, (graduacao) => graduacao.alunosGraducoes, {
-    nullable: true,
-  })
-  graduacao: Graduacoes;
-
-  @ManyToOne(() => Modalidades, (modalidade) => modalidade.alunosGraducoes)
-  modalidade: Modalidades;
-
   @ManyToOne(() => Alunos, (aluno) => aluno.alunosGraduacoes)
   aluno: Alunos;
+
+  @ManyToOne(() => Modalidades, (modalidade) => modalidade.alunosModalidades)
+  modalidade: Modalidades;
+
+  @ManyToOne(() => Graduacoes, (graduacoes) => graduacoes.alunosModalidades, {
+    nullable: true,
+  })
+  graduacao?: Graduacoes;
+
+  @ManyToOne(() => Turmas, (turma) => turma.alunosModalidades, {
+    nullable: true,
+  })
+  turma?: Turmas;
 }

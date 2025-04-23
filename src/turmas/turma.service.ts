@@ -34,7 +34,7 @@ export class TurmaService {
       throw new NotFoundException('Turma não encontrada');
     }
 
-    if (contagemAlunos.alunosGraducoes.length > 0) {
+    if (contagemAlunos.alunosModalidades.length > 0) {
       throw new BadRequestException('Turma possui alunos');
     }
 

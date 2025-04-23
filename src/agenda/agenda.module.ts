@@ -12,14 +12,14 @@ import { CobrancasClienteItems } from '../_core/entity/cobrancas-cliente-items.e
 import { ClienteModulos } from '../_core/entity/cliente-modulos.entity';
 import { Modalidades } from '../_core/entity/modalidades.entity';
 import { Planos } from '../_core/entity/planos.entity';
-import { AlunosGraducao } from '../_core/entity/alunos-graducao.entity';
+import { AlunosGraducaoHistorico } from '../_core/entity/alunos-graducao-historico.entity';
 import { Chamada } from 'src/_core/entity/chamada.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Agendas,
-      AlunosGraducao,
+      AlunosGraducaoHistorico,
       Alunos,
       Cobrancas,
       Clientes,

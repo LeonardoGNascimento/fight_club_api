@@ -14,11 +14,12 @@ import { Repository } from 'typeorm';
 import { CobrancasClienteItems } from '../_core/entity/cobrancas-cliente-items.entity';
 import { CobrancasClienteItemsTipo } from '../_core/entity/cobrancas-cliente-items-tipo.enum';
 import { async } from 'src/_core/async';
-import { AlunosGraducao } from '../_core/entity/alunos-graducao.entity';
+import { AlunosGraducaoHistorico } from '../_core/entity/alunos-graducao-historico.entity';
 import { Graduacoes } from '../_core/entity/graduacoes.entity';
 import { Planos } from '../_core/entity/planos.entity';
-import { AlunosExamesGraducao } from '../_core/entity/alunos-exames-graducao.entity';
+import { ExamesGraducaoAlunos } from '../_core/entity/exames-graducao-alunos.entity';
 import { Cobrancas } from '../_core/entity/cobrancas.entity';
+import { AlunosModalidades } from 'src/_core/entity/alunos-modalidades.entity';
 
 @Injectable()
 export class AlunosService {
@@ -26,27 +27,39 @@ export class AlunosService {
     private cobrancaService: CobrancaService,
     @InjectRepository(Cobrancas)
     private cobrancasRepository: Repository<Cobrancas>,
-    @InjectRepository(AlunosExamesGraducao)
-    private alunosExameGraduacaoRepository: Repository<AlunosExamesGraducao>,
+    @InjectRepository(ExamesGraducaoAlunos)
+    private alunosExameGraduacaoRepository: Repository<ExamesGraducaoAlunos>,
     @InjectRepository(Planos)
     private planosRepository: Repository<Planos>,
     @InjectRepository(Graduacoes)
     private graduacoesRepository: Repository<Graduacoes>,
-    @InjectRepository(AlunosGraducao)
-    private alunosGraduacaoRepository: Repository<AlunosGraducao>,
+    @InjectRepository(AlunosGraducaoHistorico)
+    private alunosGraduacaoRepository: Repository<AlunosGraducaoHistorico>,
+    @InjectRepository(AlunosModalidades)
+    private alunosModalidadesRepository: Repository<AlunosModalidades>,
     @InjectRepository(Alunos) private alunosRepository: Repository<Alunos>,
     @InjectRepository(CobrancasClienteItems)
     private cobrancaClienteItemRepository: Repository<CobrancasClienteItems>,
   ) {}
 
-  async buscar(id: string): Promise<Alunos> {
+  async buscar(id: string): Promise<any> {
     const [aluno, erro] = await async<Alunos>(
       this.alunosRepository.findOne({
         where: {
           id: id,
           deleted: null,
         },
-        relations: ['alunosGraducoes', 'alunosGraducoes.modalidade', 'plano'],
+        relations: {
+          plano: true,
+          alunosModalidades: {
+            modalidade: {
+              graduacoes: true,
+            },
+          },
+          alunosGraduacoes: {
+            graduacao: true,
+          },
+        },
       }),
     );
 
@@ -54,7 +67,31 @@ export class AlunosService {
       throw new NotFoundException('Aluno não encontrado');
     }
 
-    return aluno;
+    let modalidades: Map<any, any> | any[] = new Map();
+
+    for (const graduacao of aluno.alunosGraduacoes) {
+      const modalidadeId = graduacao.modalidade.id;
+      if (!modalidades.has(modalidadeId)) {
+        const graduacaoHistorico = aluno.alunosGraduacoes.filter(
+          (aluno) => aluno.modalidade.id === modalidadeId,
+        );
+
+        const graduacaoAtual = graduacaoHistorico
+          .sort((a, b) => a.graduacao.ordem - b.graduacao.ordem)
+          .at(-1);
+
+        modalidades.set(modalidadeId, {
+          ...graduacao.modalidade,
+          graduacaoAtual: graduacaoAtual.graduacao,
+          graduacaoHistorico,
+        });
+      }
+    }
+
+    return {
+      ...aluno,
+      modalidades: aluno.alunosModalidades,
+    };
   }
 
   async contagem(
@@ -161,11 +198,6 @@ export class AlunosService {
       throw new NotFoundException({ error: 'Plano não encontrado' });
     }
 
-    // const contagem = await this.contagem(
-    //   clienteId as string,
-    //   academiaId as string,
-    // );
-
     const aluno = await this.alunosRepository.save(
       this.alunosRepository.create({
         academiaId: String(academiaId),
@@ -205,6 +237,12 @@ export class AlunosService {
             },
           });
 
+          await this.alunosModalidadesRepository.save({
+            aluno: { id: aluno.id },
+            modalidade: {
+              id: item,
+            },
+          });
           await this.alunosGraduacaoRepository.save(data);
         }),
       );
@@ -242,14 +280,17 @@ export class AlunosService {
     const alunos = await this.alunosRepository.find({
       relations: {
         plano: true,
-        alunosGraduacoes: { modalidade: true },
+        alunosGraduacoes: true,
+        alunosModalidades: {
+          modalidade: true,
+        },
       },
       where: whereClause,
     });
 
     return alunos.map((item) => ({
       ...item,
-      modalidades: item.alunosGraduacoes.map((item2) => item2.modalidade.nome),
+      modalidades: item.alunosModalidades.map((item2) => item2.modalidade.nome),
     }));
   }
 

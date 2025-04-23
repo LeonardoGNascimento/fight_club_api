@@ -61,15 +61,9 @@ export class Academias {
   @OneToMany(() => Agendas, (agenda) => agenda.academia)
   agendas: Agendas[];
 
-  @OneToMany(() => ExamesGraduacao, (exameGraduacao) => exameGraduacao.academia)
-  examesGraduacoes: ExamesGraduacao[];
-
   @OneToMany(() => Cobrancas, (cobranca) => cobranca.academia)
   cobrancas: Cobrancas[];
 
   @OneToMany(() => Professores, (professor) => professor.academia)
   professores: Professores[];
-
-  @OneToMany(() => Usuarios, (usuario) => usuario.academia)
-  usuarios: Usuarios[];
 }

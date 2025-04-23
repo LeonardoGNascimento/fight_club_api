@@ -1,16 +1,13 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-  ManyToOne,
-  OneToOne,
-} from 'typeorm';
 import { Exclude } from 'class-transformer';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn
+} from 'typeorm';
 import { Clientes } from './clientes.entity';
-import { Admin } from './admin.entity';
-import { Academias } from './academias.entity';
 
 @Entity()
 export class Usuarios {
@@ -37,10 +34,10 @@ export class Usuarios {
   emailVerified: boolean;
 
   @Column()
-  academiaId: string;
-
-  @Column()
   clienteId: string;
+
+  @Column({ default: false })
+  admin: boolean;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -53,10 +50,4 @@ export class Usuarios {
 
   @ManyToOne(() => Clientes, (cliente) => cliente.usuarios)
   cliente: Clientes;
-
-  @ManyToOne(() => Academias, (academia) => academia.usuarios)
-  academia: Academias;
-
-  @OneToOne(() => Admin, (admin) => admin.usuario)
-  admin: Admin;
 }

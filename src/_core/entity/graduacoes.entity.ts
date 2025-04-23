@@ -7,8 +7,9 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { AlunosGraducao } from './alunos-graducao.entity'; // Relacionamento com Modalidades
+import { AlunosGraducaoHistorico } from './alunos-graducao-historico.entity'; // Relacionamento com Modalidades
 import { Modalidades } from './modalidades.entity';
+import { AlunosModalidades } from './alunos-modalidades.entity';
 
 @Entity()
 export class Graduacoes {
@@ -33,6 +34,9 @@ export class Graduacoes {
   @ManyToOne(() => Modalidades, (modalidade) => modalidade.graduacoes)
   modalidade: Modalidades;
 
-  @OneToMany(() => AlunosGraducao, (alunosGraducao) => alunosGraducao.graduacao)
-  alunosGraducoes: AlunosGraducao[];
+  @OneToMany(() => AlunosGraducaoHistorico, (alunosGraducao) => alunosGraducao.graduacao)
+  alunosGraducoes: AlunosGraducaoHistorico[];
+
+  @OneToMany(() => AlunosModalidades, (alunosGraducao) => alunosGraducao.graduacao)
+  alunosModalidades: AlunosModalidades[];
 }

@@ -1,20 +1,20 @@
 import { Controller, Get, HttpException, Req } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AlunosGraducao } from '../_core/entity/alunos-graducao.entity';
+import { AlunosGraducaoHistorico } from '../_core/entity/alunos-graducao-historico.entity';
 import { ListarGraduacoesQuery } from './query/listarGraduacoes.query';
 
 @Controller('graduacoes')
 export class GraducaoController {
   constructor(
-    @InjectRepository(AlunosGraducao)
-    private alunosGraduacaoRepository: Repository<AlunosGraducao>,
+    @InjectRepository(AlunosGraducaoHistorico)
+    private alunosGraduacaoRepository: Repository<AlunosGraducaoHistorico>,
   ) {}
 
   @Get()
   async listar(@Req() req) {
     try {
-      const graduacoes: AlunosGraducao[] = await this.alunosGraduacaoRepository
+      const graduacoes: AlunosGraducaoHistorico[] = await this.alunosGraduacaoRepository
         .createQueryBuilder('alunosGraducao')
         .innerJoinAndSelect(
           'alunosGraducao.aluno',
@@ -37,7 +37,7 @@ export class GraducaoController {
         .addOrderBy('graduacao.ordem', 'ASC')
         .getMany();
 
-      return graduacoes.map((grad: AlunosGraducao) => {
+      return graduacoes.map((grad: AlunosGraducaoHistorico) => {
         const totalGraduacoes: number = grad.modalidade.graduacoes.length;
         const grauAtual: number = grad.graduacao?.ordem || 0;
         const qtdGraus: number = grad.graduacao?.qtdGraus || 0;

@@ -6,8 +6,9 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { AlunosGraducao } from './alunos-graducao.entity';
+import { AlunosModalidades } from './alunos-modalidades.entity';
 import { Modalidades } from './modalidades.entity';
+import { Professores } from './professores.entity';
 
 @Entity()
 export class Turmas {
@@ -23,6 +24,14 @@ export class Turmas {
   @ManyToOne(() => Modalidades, (modalidade) => modalidade.Turmas)
   modalidade: Modalidades;
 
-  @OneToMany(() => AlunosGraducao, (alunoGraduacao) => alunoGraduacao.turmas)
-  alunosGraducoes: AlunosGraducao[];
+  @OneToMany(
+    () => AlunosModalidades,
+    (alunosModalidade) => alunosModalidade.turma,
+  )
+  alunosModalidades: AlunosModalidades[];
+
+  @ManyToOne(() => Professores, (professor) => professor.turmas, {
+    nullable: true,
+  })
+  professor?: Professores;
 }

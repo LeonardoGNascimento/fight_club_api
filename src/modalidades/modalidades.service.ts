@@ -67,6 +67,17 @@ export class ModalidadesService {
     });
   }
 
+  async findGraduacao(id: string): Promise<Graduacoes[]> {
+    return await this.graduacoesRepository.find({
+      order: {
+        ordem: 'ASC',
+      },
+      where: {
+        modalidade: { id },
+      },
+    });
+  }
+
   async contagem(id: string): Promise<number> {
     return await this.modalidadesRepository.count({
       where: {

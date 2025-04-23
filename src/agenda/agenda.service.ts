@@ -11,7 +11,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, In, Repository } from 'typeorm';
 import { Agendas } from '../_core/entity/agendas.entity';
-import { AlunosGraducao } from '../_core/entity/alunos-graducao.entity';
+import { AlunosGraducaoHistorico } from '../_core/entity/alunos-graducao-historico.entity';
 import { Chamada } from 'src/_core/entity/chamada.entity';
 import { ptBR } from 'date-fns/locale';
 
@@ -20,8 +20,8 @@ export class AgendaService {
   constructor(
     @InjectRepository(Agendas) private agendaRepository: Repository<Agendas>,
     @InjectRepository(Chamada) private chamadaRepository: Repository<Chamada>,
-    @InjectRepository(AlunosGraducao)
-    private alunosGraduacaoService: Repository<AlunosGraducao>,
+    @InjectRepository(AlunosGraducaoHistorico)
+    private alunosGraduacaoService: Repository<AlunosGraducaoHistorico>,
   ) {}
 
   async buscarFrequencia(id: string) {

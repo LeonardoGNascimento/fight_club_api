@@ -11,6 +11,7 @@ import { ModalidadesService } from './modalidades.service';
 import { GetUser } from '../_core/getUser.decorator';
 import { User } from '../@types/user';
 import { Modalidades } from '../_core/entity/modalidades.entity';
+import { Graduacoes } from 'src/_core/entity/graduacoes.entity';
 
 @Controller('modalidades')
 export class ModalidadesController {
@@ -32,6 +33,11 @@ export class ModalidadesController {
   @Get('contagem')
   countAlunos(@GetUser() user: User): Promise<number> {
     return this.modalidadesService.contagem(user.academiaId);
+  }
+
+  @Get(':id/graduacao')
+  findGraduacao(@Param('id') id: string): Promise<Graduacoes[]> {
+    return this.modalidadesService.findGraduacao(id);
   }
 
   @Get(':id')

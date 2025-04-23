@@ -10,7 +10,7 @@ import { Alunos } from './alunos.entity';
 import { ExamesGraduacao } from './exames-graduacao.entity';
 
 @Entity()
-export class AlunosExamesGraducao {
+export class ExamesGraducaoAlunos {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

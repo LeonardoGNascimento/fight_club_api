@@ -17,11 +17,11 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleInit(): Promise<void> {
-    this.client = createClient({
-      url: this.configService.get('REDIS_URL'),
-    });
+    // this.client = createClient({
+    //   url: this.configService.get('REDIS_URL'),
+    // });
 
-    await this.client.connect();
+    // await this.client.connect();
     this.logger.log('Redis conectado com sucesso!');
   }
 
