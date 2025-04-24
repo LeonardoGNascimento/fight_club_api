@@ -39,6 +39,6 @@ export class AlunosGraducaoHistorico {
   @ManyToOne(() => Modalidades, (modalidade) => modalidade.alunosGraducoes)
   modalidade: Modalidades;
 
-  @ManyToOne(() => Alunos, (aluno) => aluno.alunosGraduacoes)
+  @ManyToOne(() => Alunos, (aluno) => aluno.alunosGraducaoHistorico)
   aluno: Alunos;
 }

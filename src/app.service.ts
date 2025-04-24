@@ -314,7 +314,7 @@ export class AppService {
   async dashboardAlunos(alunoId: string) {
     const data = await this.alunosRepository.findOne({
       relations: {
-        alunosGraduacoes: {
+        alunosGraducaoHistorico: {
           graduacao: true,
           modalidade: {
             graduacoes: true,
@@ -326,7 +326,7 @@ export class AppService {
       },
     });
 
-    const graduacaoAtual = data.alunosGraduacoes
+    const graduacaoAtual = data.alunosGraducaoHistorico
       .sort((a, b) => a.graduacao.ordem - b.graduacao.ordem)
       .at(-1);
     const total = graduacaoAtual.modalidade.graduacoes.length;

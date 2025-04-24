@@ -7,11 +7,14 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { UsuariosModule } from '../usuarios/usuarios.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Clientes } from 'src/_core/entity/clientes.entity';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     PassportModule,
+    TypeOrmModule.forFeature([Clientes]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

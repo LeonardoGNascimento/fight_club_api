@@ -21,7 +21,7 @@ export class AlunosModalidades {
   @DeleteDateColumn()
   deleted: Date;
 
-  @ManyToOne(() => Alunos, (aluno) => aluno.alunosGraduacoes)
+  @ManyToOne(() => Alunos, (aluno) => aluno.alunosModalidades)
   aluno: Alunos;
 
   @ManyToOne(() => Modalidades, (modalidade) => modalidade.alunosModalidades)

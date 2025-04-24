@@ -63,12 +63,6 @@ export class Alunos {
   @DeleteDateColumn()
   deleted: Date;
 
-  @Column()
-  academiaId: string;
-
-  @Column()
-  planoId: string;
-
   @ManyToOne(() => Academias, (academia) => academia.alunos)
   academia: Academias;
 
@@ -82,7 +76,7 @@ export class Alunos {
   alunosExamesGraducoes: ExamesGraducaoAlunos[];
 
   @OneToMany(() => AlunosGraducaoHistorico, (alunoGraducao) => alunoGraducao.aluno)
-  alunosGraduacoes: AlunosGraducaoHistorico[];
+  alunosGraducaoHistorico: AlunosGraducaoHistorico[];
 
   @OneToMany(() => AlunosModalidades, (alunosModalidades) => alunosModalidades.aluno)
   alunosModalidades: AlunosModalidades[];

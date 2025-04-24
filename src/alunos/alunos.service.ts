@@ -3,28 +3,26 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { format, lastDayOfMonth } from 'date-fns';
-import { CobrancaService } from 'src/cobrancas/cobranca.service';
+import { async } from 'src/_core/async';
+import { AlunosModalidades } from 'src/_core/entity/alunos-modalidades.entity';
+import { Repository } from 'typeorm';
+import { AlunosGraducaoHistorico } from '../_core/entity/alunos-graducao-historico.entity';
+import { Alunos, Status } from '../_core/entity/alunos.entity';
+import { CobrancasClienteItemsTipo } from '../_core/entity/cobrancas-cliente-items-tipo.enum';
+import { CobrancasClienteItems } from '../_core/entity/cobrancas-cliente-items.entity';
+import { Cobrancas } from '../_core/entity/cobrancas.entity';
+import { ExamesGraducaoAlunos } from '../_core/entity/exames-graducao-alunos.entity';
+import { Graduacoes } from '../_core/entity/graduacoes.entity';
+import { Planos } from '../_core/entity/planos.entity';
 import { AtualizarGraduacaoDto } from './dto/atualizarGraducao.dto';
 import { CreateAlunoDto } from './dto/createAluno.dto';
 import { ListarAlunosDto } from './dto/listarAlunos.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Alunos, Status } from '../_core/entity/alunos.entity';
-import { Repository } from 'typeorm';
-import { CobrancasClienteItems } from '../_core/entity/cobrancas-cliente-items.entity';
-import { CobrancasClienteItemsTipo } from '../_core/entity/cobrancas-cliente-items-tipo.enum';
-import { async } from 'src/_core/async';
-import { AlunosGraducaoHistorico } from '../_core/entity/alunos-graducao-historico.entity';
-import { Graduacoes } from '../_core/entity/graduacoes.entity';
-import { Planos } from '../_core/entity/planos.entity';
-import { ExamesGraducaoAlunos } from '../_core/entity/exames-graducao-alunos.entity';
-import { Cobrancas } from '../_core/entity/cobrancas.entity';
-import { AlunosModalidades } from 'src/_core/entity/alunos-modalidades.entity';
 
 @Injectable()
 export class AlunosService {
   constructor(
-    private cobrancaService: CobrancaService,
     @InjectRepository(Cobrancas)
     private cobrancasRepository: Repository<Cobrancas>,
     @InjectRepository(ExamesGraducaoAlunos)
@@ -34,7 +32,7 @@ export class AlunosService {
     @InjectRepository(Graduacoes)
     private graduacoesRepository: Repository<Graduacoes>,
     @InjectRepository(AlunosGraducaoHistorico)
-    private alunosGraduacaoRepository: Repository<AlunosGraducaoHistorico>,
+    private alunosGraduacaoHistoricoRepository: Repository<AlunosGraducaoHistorico>,
     @InjectRepository(AlunosModalidades)
     private alunosModalidadesRepository: Repository<AlunosModalidades>,
     @InjectRepository(Alunos) private alunosRepository: Repository<Alunos>,
@@ -45,20 +43,16 @@ export class AlunosService {
   async buscar(id: string): Promise<any> {
     const [aluno, erro] = await async<Alunos>(
       this.alunosRepository.findOne({
-        where: {
-          id: id,
-          deleted: null,
-        },
         relations: {
           plano: true,
           alunosModalidades: {
-            modalidade: {
-              graduacoes: true,
-            },
-          },
-          alunosGraduacoes: {
+            modalidade: true,
             graduacao: true,
           },
+        },
+        where: {
+          id: id,
+          deleted: null,
         },
       }),
     );
@@ -67,31 +61,7 @@ export class AlunosService {
       throw new NotFoundException('Aluno não encontrado');
     }
 
-    let modalidades: Map<any, any> | any[] = new Map();
-
-    for (const graduacao of aluno.alunosGraduacoes) {
-      const modalidadeId = graduacao.modalidade.id;
-      if (!modalidades.has(modalidadeId)) {
-        const graduacaoHistorico = aluno.alunosGraduacoes.filter(
-          (aluno) => aluno.modalidade.id === modalidadeId,
-        );
-
-        const graduacaoAtual = graduacaoHistorico
-          .sort((a, b) => a.graduacao.ordem - b.graduacao.ordem)
-          .at(-1);
-
-        modalidades.set(modalidadeId, {
-          ...graduacao.modalidade,
-          graduacaoAtual: graduacaoAtual.graduacao,
-          graduacaoHistorico,
-        });
-      }
-    }
-
-    return {
-      ...aluno,
-      modalidades: aluno.alunosModalidades,
-    };
+    return aluno;
   }
 
   async contagem(
@@ -156,7 +126,7 @@ export class AlunosService {
   }
 
   async atualizarGraduacao(atualizarGraduacaoDto: AtualizarGraduacaoDto) {
-    const alunoModalidade = await this.alunosGraduacaoRepository.findOne({
+    const alunoModalidade = await this.alunosModalidadesRepository.findOne({
       where: {
         aluno: {
           id: atualizarGraduacaoDto.id,
@@ -171,7 +141,7 @@ export class AlunosService {
       throw new BadRequestException('Aluno não treina essa modalidade');
     }
 
-    await this.alunosGraduacaoRepository.save({
+    this.alunosGraduacaoHistoricoRepository.save({
       graduacao: {
         id: atualizarGraduacaoDto.graduacaoId,
       },
@@ -182,6 +152,25 @@ export class AlunosService {
         id: atualizarGraduacaoDto.modalidadeId,
       },
     });
+
+    await this.alunosModalidadesRepository.update(
+      {
+        aluno: {
+          id: atualizarGraduacaoDto.id,
+        },
+        modalidade: {
+          id: atualizarGraduacaoDto.modalidadeId,
+        },
+      },
+      {
+        graduacao: {
+          id: atualizarGraduacaoDto.graduacaoId,
+        },
+        aluno: {
+          id: atualizarGraduacaoDto.id,
+        },
+      },
+    );
 
     return true;
   }
@@ -200,14 +189,14 @@ export class AlunosService {
 
     const aluno = await this.alunosRepository.save(
       this.alunosRepository.create({
-        academiaId: String(academiaId),
+        academia: { id: String(academiaId) },
         nome: body.nome,
         cep: body.cep,
         cidade: body.cidade,
         cpf: body.cpf,
         estado: body.estado,
         numero: body.numero,
-        planoId: body.plano,
+        plano: { id: body.plano },
         rua: body.rua,
         telefone: body.telefone,
         status: plano.valor == '0' ? Status.ATIVO : Status.PENDENTE,
@@ -227,7 +216,19 @@ export class AlunosService {
             },
           });
 
-          const data = this.alunosGraduacaoRepository.create({
+          await this.alunosModalidadesRepository.save({
+            aluno: { id: aluno.id },
+            modalidade: {
+              id: item,
+            },
+            graduacao: graduacao
+              ? {
+                  id: graduacao.id,
+                }
+              : null,
+          });
+
+          await this.alunosGraduacaoHistoricoRepository.save({
             aluno: { id: aluno.id },
             modalidade: {
               id: item,
@@ -236,21 +237,13 @@ export class AlunosService {
               id: graduacao?.id,
             },
           });
-
-          await this.alunosModalidadesRepository.save({
-            aluno: { id: aluno.id },
-            modalidade: {
-              id: item,
-            },
-          });
-          await this.alunosGraduacaoRepository.save(data);
         }),
       );
     }
 
-    if (plano.valor !== '0') {
-      await this.cobrancaService.lancarCobrancasPorAluno(aluno.id);
-    }
+    // if (plano.valor !== '0') {
+    //   await this.cobrancaService.lancarCobrancasPorAluno(aluno.id);
+    // }
 
     // if (contagem.alunosAtivos === contagem.alunosPagos) {
     //   await this.cobrancaService.lancarValor({
@@ -265,9 +258,10 @@ export class AlunosService {
   async findAll({ query, academiaId }: ListarAlunosDto) {
     const { modalidade, plano, status } = query;
 
-    // Constrói a cláusula where de forma mais direta
     const whereClause: any = {
-      academiaId,
+      academia: {
+        id: academiaId,
+      },
       deleted: null,
       ...(modalidade &&
         modalidade !== 'all' && {
@@ -280,7 +274,7 @@ export class AlunosService {
     const alunos = await this.alunosRepository.find({
       relations: {
         plano: true,
-        alunosGraduacoes: true,
+        alunosGraducaoHistorico: true,
         alunosModalidades: {
           modalidade: true,
         },
@@ -294,68 +288,7 @@ export class AlunosService {
     }));
   }
 
-  async put({ id, ...body }: any) {
-    const aluno = await this.alunosRepository.findOne({
-      where: {
-        id,
-      },
-    });
-
-    if (!aluno) {
-      throw new NotFoundException({ error: 'Aluno não encontrado' });
-    }
-
-    const updatedAluno = await this.alunosRepository.update(aluno.id, {
-      nome: body.nome,
-      cep: body.cep,
-      cidade: body.cidade,
-      cpf: body.cpf,
-      estado: body.estado,
-      numero: body.numero,
-      plano: {
-        id: body.plano,
-      },
-      rua: body.rua,
-      telefone: body.telefone,
-      status: body.status,
-    });
-
-    if (body.modalidades && body.modalidades.length > 0) {
-      await this.alunosGraduacaoRepository
-        .createQueryBuilder()
-        .delete()
-        .where('alunosId = :id', { id: aluno.id })
-        .execute();
-
-      await Promise.all(
-        body.modalidades.map(async (modalidade: string) => {
-          const graduacao = await this.graduacoesRepository.findOne({
-            where: {
-              modalidade: {
-                id: modalidade,
-              },
-              deleted: null,
-              ordem: 1,
-            },
-          });
-
-          const data: any = {
-            alunosId: aluno.id,
-            modalidadesId: modalidade,
-            graduacoesId: null,
-          };
-
-          if (graduacao) {
-            data.graduacoesId = graduacao.id;
-          }
-
-          await this.alunosGraduacaoRepository.save(data);
-        }),
-      );
-    }
-
-    return updatedAluno;
-  }
+  async put({ id, ...body }: any) {}
 
   async delete(id: string) {
     const aluno = await this.alunosRepository.findOne({

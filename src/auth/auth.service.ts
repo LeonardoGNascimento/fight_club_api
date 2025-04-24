@@ -3,11 +3,15 @@ import { JwtService } from '@nestjs/jwt';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
+import { Repository } from 'typeorm';
+import { Clientes } from 'src/_core/entity/clientes.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usuariosService: UsuariosService,
+    @InjectRepository(Clientes) private clienteRepository: Repository<Clientes>,
     private jwtService: JwtService,
   ) {}
 
@@ -18,7 +22,7 @@ export class AuthService {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
-    // const isPasswordValid = await bcrypt.compare(password, usuario.password);  
+    // const isPasswordValid = await bcrypt.compare(password, usuario.password);
 
     // if (!isPasswordValid) {
     //   throw new UnauthorizedException('Credenciais inválidas');
@@ -28,13 +32,22 @@ export class AuthService {
     return result;
   }
 
-  async login(loginDto: LoginDto) {    
+  async login(loginDto: LoginDto) {
     const user = await this.validateUser(loginDto.email, loginDto.password);
 
     const payload = {
       id: user.id,
       email: user.email,
-      academiaId: user.academiaId,
+      academiaId: await this.clienteRepository
+        .findOne({
+          relations: {
+            academias: true,
+          },
+          where: {
+            id: user.clienteId,
+          },
+        })
+        .then((res) => res.academias[0].id),
       clienteId: user.clienteId,
       isAdmin: !!(await this.usuariosService.isAdmin(user.id)),
     };

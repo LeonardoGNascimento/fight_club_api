@@ -15,16 +15,14 @@ export class PlanosRepository {
 
   async criar({ academiaId, descricao, nome, valor }: CriarPlanoDto) {
     const [data, error] = await async(
-      this.planosRepository.save(
-        this.planosRepository.create({
-          academia: {
-            id: academiaId,
-          },
-          descricao,
-          nome,
-          valor,
-        }),
-      ),
+      this.planosRepository.save({
+        academia: {
+          id: academiaId,
+        },
+        descricao,
+        nome,
+        valor,
+      }),
     );
 
     return error ? null : data;
