@@ -19,6 +19,7 @@ import { Planos } from '../_core/entity/planos.entity';
 import { AtualizarGraduacaoDto } from './dto/atualizarGraducao.dto';
 import { CreateAlunoDto } from './dto/createAluno.dto';
 import { ListarAlunosDto } from './dto/listarAlunos.dto';
+import { DetalhesAlunosQuery } from './query/detalhesAluno.query';
 
 @Injectable()
 export class AlunosService {
@@ -61,7 +62,43 @@ export class AlunosService {
       throw new NotFoundException('Aluno não encontrado');
     }
 
-    return aluno;
+    const retorno = new DetalhesAlunosQuery(aluno);
+
+    await Promise.all(
+      aluno.alunosModalidades.map(async (item) => {
+        const [alunoGraduacaoHistorico] = await async<any[]>(
+          this.alunosGraduacaoHistoricoRepository
+            .createQueryBuilder('historico')
+            .innerJoinAndSelect(
+              Graduacoes,
+              'graduacoes',
+              'graduacoes.id = historico.graduacaoId',
+            )
+            .where('historico.alunoId = :alunoId', { alunoId: aluno.id })
+            .andWhere('historico.modalidadeId = :modalidadeId', {
+              modalidadeId: item.modalidade.id,
+            })
+            .orderBy('historico.dataHora', 'DESC')
+            .getRawMany(),
+        );
+
+        alunoGraduacaoHistorico.forEach((item2) =>
+          retorno.addHistoricoGraduacao(
+            {
+              id: item2.historico_id,
+              dataHora: item2.historico_dataHora,
+              nome: item2.graduacoes_nome,
+              instrutor: item2.historico_instrutor,
+              observacao: item2.historico_observacao,
+              grau: item2.historico_grau,
+            },
+            item.modalidade.id,
+          ),
+        );
+      }),
+    );
+
+    return retorno;
   }
 
   async contagem(
@@ -126,6 +163,8 @@ export class AlunosService {
   }
 
   async atualizarGraduacao(atualizarGraduacaoDto: AtualizarGraduacaoDto) {
+    console.log(atualizarGraduacaoDto);
+
     const alunoModalidade = await this.alunosModalidadesRepository.findOne({
       where: {
         aluno: {
@@ -141,7 +180,19 @@ export class AlunosService {
       throw new BadRequestException('Aluno não treina essa modalidade');
     }
 
+    const graduacao = await this.graduacoesRepository.findOneBy({
+      id: atualizarGraduacaoDto.graduacaoId,
+    });
+
+    console.log(graduacao);
+
     this.alunosGraduacaoHistoricoRepository.save({
+      instrutor: atualizarGraduacaoDto.instrutor,
+      observacao: atualizarGraduacaoDto.observacao,
+      grau:
+        graduacao.qtdGraus >= atualizarGraduacaoDto.grau
+          ? atualizarGraduacaoDto.grau
+          : null,
       graduacao: {
         id: atualizarGraduacaoDto.graduacaoId,
       },
@@ -169,6 +220,10 @@ export class AlunosService {
         aluno: {
           id: atualizarGraduacaoDto.id,
         },
+        grau:
+          graduacao.qtdGraus >= atualizarGraduacaoDto.grau
+            ? atualizarGraduacaoDto.grau
+            : null,
       },
     );
 
@@ -187,21 +242,19 @@ export class AlunosService {
       throw new NotFoundException({ error: 'Plano não encontrado' });
     }
 
-    const aluno = await this.alunosRepository.save(
-      this.alunosRepository.create({
-        academia: { id: String(academiaId) },
-        nome: body.nome,
-        cep: body.cep,
-        cidade: body.cidade,
-        cpf: body.cpf,
-        estado: body.estado,
-        numero: body.numero,
-        plano: { id: body.plano },
-        rua: body.rua,
-        telefone: body.telefone,
-        status: plano.valor == '0' ? Status.ATIVO : Status.PENDENTE,
-      }),
-    );
+    const aluno = await this.alunosRepository.save({
+      academia: { id: String(academiaId) },
+      nome: body.nome,
+      cep: body.cep,
+      cidade: body.cidade,
+      cpf: body.cpf,
+      estado: body.estado,
+      numero: body.numero,
+      plano: { id: body.plano },
+      rua: body.rua,
+      telefone: body.telefone,
+      status: plano.valor == '0' ? Status.ATIVO : Status.PENDENTE,
+    });
 
     if (body.modalidades && body.modalidades.length > 0) {
       await Promise.all(
@@ -217,6 +270,7 @@ export class AlunosService {
           });
 
           await this.alunosModalidadesRepository.save({
+            grau: graduacao && graduacao.qtdGraus > 0 ? 0 : null,
             aluno: { id: aluno.id },
             modalidade: {
               id: item,
@@ -229,6 +283,7 @@ export class AlunosService {
           });
 
           await this.alunosGraduacaoHistoricoRepository.save({
+            grau: graduacao.qtdGraus > 0 ? 0 : null,
             aluno: { id: aluno.id },
             modalidade: {
               id: item,

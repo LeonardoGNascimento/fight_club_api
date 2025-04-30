@@ -48,8 +48,14 @@ export class AlunosController {
   }
 
   @Patch('/:id/modalidade/:modalidadeId/graduacao/:graduacaoId')
-  cadastrarGraduacao(@Param() atualizarGraduacaoDto: AtualizarGraduacaoDto) {
-    return this.alunosService.atualizarGraduacao(atualizarGraduacaoDto);
+  cadastrarGraduacao(
+    @Param() atualizarGraduacaoDto: AtualizarGraduacaoDto,
+    @Body() body: any,
+  ) {
+    return this.alunosService.atualizarGraduacao({
+      ...atualizarGraduacaoDto,
+      ...body,
+    });
   }
 
   @Put(':id')

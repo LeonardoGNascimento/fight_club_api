@@ -23,6 +23,11 @@ export class AlunosGraducaoHistorico {
   @Column({
     nullable: true,
   })
+  grau?: number;
+
+  @Column({
+    nullable: true,
+  })
   observacao?: string;
 
   @CreateDateColumn()
