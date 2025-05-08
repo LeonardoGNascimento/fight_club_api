@@ -1,35 +1,30 @@
-# Etapa 1: Build
 FROM node:22-alpine AS builder
-
-# Instala dependências úteis (opcional: remove se não usar npm audit etc.)
-RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
-# Copia apenas arquivos essenciais para instalar dependências
-COPY package*.json ./
+# Instala compatibilidade com dependências nativas
+RUN apk add --no-cache libc6-compat
 
-# Instala as dependências em modo limpo
+# Copia apenas os arquivos necessários primeiro (cache mais eficiente)
+COPY package.json package-lock.json ./
+
+# Instala dependências de forma limpa usando o lockfile
 RUN npm ci --legacy-peer-deps
 
-# Copia o restante do código 
+# Copia o restante do código
 COPY . .
 
-# Compila a aplicação
+# Compila o projeto
 RUN npm run build
 
-# Etapa 2: Runtime
+# Fase de execução
 FROM node:22-alpine AS runner
 
 WORKDIR /app
 
-# Copia apenas o necessário da build
+# Copia apenas o necessário da fase de build
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
 
-# Define a porta exposta (caso use em nuvem ou Docker Compose)
-EXPOSE 3000
-
-# Usa node diretamente
 CMD ["node", "dist/main.js"]
