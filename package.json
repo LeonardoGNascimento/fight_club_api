@@ -1,10 +1,10 @@
 {
-  "name": "dojo",
-  "version": "0.0.1",
-  "description": "",
+  "name": "dojo-planner-api",
+  "version": "1.0.0",
+  "description": "API for DojoPlanner, a web application for managing martial arts dojos and their members.",
   "author": "",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT license",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
