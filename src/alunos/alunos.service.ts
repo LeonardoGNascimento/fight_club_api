@@ -20,6 +20,7 @@ import { AtualizarGraduacaoDto } from './dto/atualizarGraducao.dto';
 import { CreateAlunoDto } from './dto/createAluno.dto';
 import { ListarAlunosDto } from './dto/listarAlunos.dto';
 import { DetalhesAlunosQuery } from './query/detalhesAluno.query';
+import { AlunosRepository } from './alunos.repository';
 
 @Injectable()
 export class AlunosService {
@@ -39,26 +40,14 @@ export class AlunosService {
     @InjectRepository(Alunos) private alunosRepository: Repository<Alunos>,
     @InjectRepository(CobrancasClienteItems)
     private cobrancaClienteItemRepository: Repository<CobrancasClienteItems>,
+
+    private repository: AlunosRepository,
   ) {}
 
   async buscar(id: string): Promise<any> {
-    const [aluno, erro] = await async<Alunos>(
-      this.alunosRepository.findOne({
-        relations: {
-          plano: true,
-          alunosModalidades: {
-            modalidade: true,
-            graduacao: true,
-          },
-        },
-        where: {
-          id: id,
-          deleted: null,
-        },
-      }),
-    );
+    const aluno = await this.repository.buscar(id);
 
-    if (!aluno || erro) {
+    if (!aluno) {
       throw new NotFoundException('Aluno não encontrado');
     }
 
@@ -343,7 +332,12 @@ export class AlunosService {
     }));
   }
 
-  async put({ id, ...body }: any) {}
+  async put({ id, ...body }: any) {
+    return await this.alunosRepository.save({
+      id,
+      ...body,
+    });
+  }
 
   async delete(id: string) {
     const aluno = await this.alunosRepository.findOne({

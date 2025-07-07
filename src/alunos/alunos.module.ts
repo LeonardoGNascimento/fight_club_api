@@ -11,6 +11,7 @@ import { Planos } from '../_core/entity/planos.entity';
 import { ExamesGraducaoAlunos } from '../_core/entity/exames-graducao-alunos.entity';
 import { Cobrancas } from '../_core/entity/cobrancas.entity';
 import { AlunosModalidades } from 'src/_core/entity/alunos-modalidades.entity';
+import { AlunosRepository } from './alunos.repository';
 
 @Module({
   imports: [
@@ -27,6 +28,6 @@ import { AlunosModalidades } from 'src/_core/entity/alunos-modalidades.entity';
     CobrancaModule,
   ],
   controllers: [AlunosController],
-  providers: [AlunosService],
+  providers: [AlunosService, AlunosRepository],
 })
 export class AlunosModule {}
