@@ -37,9 +37,6 @@ export class Alunos {
   cpf: string;
 
   @Column()
-  dataNascimento: string;
-
-  @Column()
   rua: string;
 
   @Column()
