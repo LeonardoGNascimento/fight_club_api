@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ExameService } from './exame.service';
 
 @Controller('exames')
@@ -8,5 +8,10 @@ export class ExameController {
   @Get()
   listar() {
     return this.service.listar();
+  }
+
+  @Post()
+  criar(@Body() body: any) {
+    return this.service.criar(body);
   }
 }

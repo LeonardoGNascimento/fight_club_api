@@ -18,4 +18,13 @@ export class ExameService {
       },
     });
   }
+
+  async criar(body: any) {
+    return await this.examesGraduacaoRepository.save({
+      dataAgendamento: body.dataAgendamento,
+      modalidade: {
+        id: body.modalidadeId,
+      },
+    });
+  }
 }
