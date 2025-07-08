@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Alunos } from './alunos.entity';
 import { ExamesGraduacao } from './exames-graduacao.entity';
+import { StatusExame } from '../enum/statusExame';
 
 @Entity()
 export class ExamesGraducaoAlunos {
@@ -17,8 +18,8 @@ export class ExamesGraducaoAlunos {
   @CreateDateColumn()
   dataHora: Date;
 
-  @Column({ type: 'boolean' })
-  aprovado: boolean;
+  @Column({ type: 'enum', enum: StatusExame, default: StatusExame.emAndamento })
+  status: StatusExame;
 
   @DeleteDateColumn()
   deleted: Date;

@@ -1,4 +1,5 @@
 import {
+  Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
@@ -17,6 +18,9 @@ export class ExamesGraduacao {
 
   @CreateDateColumn()
   dataHora: Date;
+
+  @Column({ type: 'datetime' })
+  dataAgendamento: Date;
 
   @DeleteDateColumn()
   deleted: Date;

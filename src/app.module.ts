@@ -26,6 +26,7 @@ import { CobrancasCliente } from './_core/entity/cobrancas-cliente.entity';
 import { CobrancasClienteItems } from './_core/entity/cobrancas-cliente-items.entity';
 import { ModalidadesModule } from './modalidades/modalidades.module';
 import { PlanosModule } from './planos/planos.module';
+import { ExameModule } from './exames/exame.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { PlanosModule } from './planos/planos.module';
     TurmaModule,
     ModalidadesModule,
     PlanosModule,
+    ExameModule,
   ],
   controllers: [AppController],
   providers: [
