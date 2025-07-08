@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExamesGraduacao } from 'src/_core/entity/exames-graduacao.entity';
+import { Modalidades } from 'src/_core/entity/modalidades.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -11,6 +12,10 @@ export class ExameService {
   ) {}
 
   async listar() {
-    return await this.examesGraduacaoRepository.find();
+    return await this.examesGraduacaoRepository.find({
+      relations: {
+        modalidade: true,
+      },
+    });
   }
 }
