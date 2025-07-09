@@ -27,6 +27,7 @@ import { CobrancasClienteItems } from './_core/entity/cobrancas-cliente-items.en
 import { ModalidadesModule } from './modalidades/modalidades.module';
 import { PlanosModule } from './planos/planos.module';
 import { ExameModule } from './exames/exame.module';
+import { ProfessoresModule } from './professores/professores.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { ExameModule } from './exames/exame.module';
     ModalidadesModule,
     PlanosModule,
     ExameModule,
+    ProfessoresModule,
   ],
   controllers: [AppController],
   providers: [
