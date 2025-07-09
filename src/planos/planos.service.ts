@@ -5,10 +5,10 @@ import { EditarPlanoDto } from './dto/editarPlano.dto';
 
 @Injectable()
 export class PlanosService {
-  constructor(private respository: PlanosRepository) {}
+  constructor(private repository: PlanosRepository) {}
 
   async criar(dto: CriarPlanoDto) {
-    const plano = await this.respository.criar(dto);
+    const plano = await this.repository.criar(dto);
 
     if (!plano) {
       throw new HttpException('Ocorreu um erro ao salvar plano', 500);
@@ -18,7 +18,7 @@ export class PlanosService {
   }
 
   async buscar(id: string){
-    const plano = await this.respository.buscar(id);
+    const plano = await this.repository.buscar(id);
 
     if (!plano) {
       throw new HttpException('Nao foi possivel buscar o plano', 500);
@@ -28,11 +28,11 @@ export class PlanosService {
   }
 
   async listar(academiaId: string) {
-    return await this.respository.listar(academiaId);
+    return await this.repository.listar(academiaId);
   }
 
   async editar(dto: EditarPlanoDto) {
-    const plano = await this.respository.editar(dto);
+    const plano = await this.repository.editar(dto);
 
     if (!plano) {
       throw new HttpException('Ocorreu um erro ao editar o plano', 500);
@@ -42,7 +42,7 @@ export class PlanosService {
   }
 
   async deletar(id: string) {
-    const plano = await this.respository.deletar(id);
+    const plano = await this.repository.deletar(id);
 
     if (!plano) {
       throw new HttpException('Ocorreu um erro ao deletar o plano', 500);

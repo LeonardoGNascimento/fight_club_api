@@ -13,13 +13,12 @@ async function bootstrap(): Promise<void> {
   app.useGlobalPipes(new ValidationPipe());
 
   const config = new DocumentBuilder()
-    .setTitle('Cats example')
-    .setDescription('The cats API description')
+    .setTitle('DojoPlanner API')
+    .setDescription('API documentation for DojoPlanner')
     .setVersion('1.0')
-    .addTag('cats')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory);
+  SwaggerModule.setup('/docs', app, documentFactory);
 
   await app.listen(process.env.PORT ?? 3001);
 }
