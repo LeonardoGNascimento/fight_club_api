@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { async } from 'src/_core/async';
 import { Alunos, Status } from 'src/_core/entity/alunos.entity';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { CreateAlunoDto } from './dto/criar-aluno.dto';
 
 @Injectable()
@@ -48,6 +48,17 @@ export class AlunosRepository {
       rua: dto.rua,
       telefone: dto.telefone,
       status: Status.ATIVO,
+    });
+  }
+
+  async listar(options?: FindManyOptions<Alunos>) {
+    return await this.alunosRepository.find(options);
+  }
+
+  async salvar({ id, ...body }: Partial<Alunos>) {
+    return await this.alunosRepository.save({
+      id,
+      ...body,
     });
   }
 }

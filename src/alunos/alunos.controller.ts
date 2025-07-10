@@ -32,7 +32,7 @@ export class AlunosController {
 
   @Get()
   findAll(@Req() req, @Query() query: ListarAlunosQueryDto): Promise<Alunos[]> {
-    return this.alunosService.findAll({
+    return this.alunosService.listar({
       query,
       academiaId: req.user.academiaId,
     });

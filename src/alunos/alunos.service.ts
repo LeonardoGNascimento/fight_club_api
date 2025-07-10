@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AlunosModalidades } from 'src/_core/entity/alunos-modalidades.entity';
 import { GraduacaoService } from 'src/graduacao/graduacao.service';
 import { Repository } from 'typeorm';
-import { Alunos, Status } from '../_core/entity/alunos.entity';
+import { Alunos } from '../_core/entity/alunos.entity';
 import { AlunosRepository } from './alunos.repository';
 import { AtualizarGraduacaoDto } from './dto/atualizar-graducao.dto';
 import { CreateAlunoDto } from './dto/criar-aluno.dto';
@@ -19,7 +19,6 @@ export class AlunosService {
   constructor(
     @InjectRepository(AlunosModalidades)
     private alunosModalidadesRepository: Repository<AlunosModalidades>,
-    @InjectRepository(Alunos) private alunosRepository: Repository<Alunos>,
 
     private repository: AlunosRepository,
     private graduacaoService: GraduacaoService,
@@ -174,7 +173,7 @@ export class AlunosService {
     return aluno;
   }
 
-  async findAll({ query, academiaId }: ListarAlunosDto) {
+  async listar({ query, academiaId }: ListarAlunosDto) {
     const { modalidade, plano, status } = query;
 
     const whereClause: any = {
@@ -190,7 +189,7 @@ export class AlunosService {
       ...(status && status !== 'all' && { status }),
     };
 
-    const alunos = await this.alunosRepository.find({
+    const alunos = await this.repository.listar({
       relations: {
         plano: true,
         alunosGraducaoHistorico: true,
@@ -208,24 +207,21 @@ export class AlunosService {
   }
 
   async put({ id, ...body }: Partial<Alunos>) {
-    return await this.alunosRepository.save({
+    return await this.repository.salvar({
       id,
       ...body,
     });
   }
 
   async deletar(id: string) {
-    const aluno = await this.alunosRepository.findOne({
-      where: {
-        id,
-      },
-    });
+    const aluno = await this.repository.buscar(id);
 
     if (!aluno) {
       throw new NotFoundException({ error: 'Aluno não encontrado' });
     }
 
-    const deletedAluno = await this.alunosRepository.update(aluno.id, {
+    const deletedAluno = await this.repository.salvar({
+      id,
       deleted: new Date(),
     });
 
