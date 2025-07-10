@@ -15,13 +15,14 @@ import { AtualizarGraduacaoDto } from './dto/atualizar-graducao.dto';
 import { ListarAlunosQueryDto } from './dto/listar-alunos.dto';
 import { GetUser } from 'src/_core/getUser.decorator';
 import { User } from 'src/@types/user';
+import { Alunos } from 'src/_core/entity/alunos.entity';
 
 @Controller('alunos')
 export class AlunosController {
   constructor(private readonly alunosService: AlunosService) {}
 
   @Post()
-  async create(@Body() body: any, @GetUser() user: User) {
+  create(@Body() body: any, @GetUser() user: User): Promise<Alunos> {
     return this.alunosService.create({
       ...body,
       academiaId: user.academiaId,
@@ -30,7 +31,7 @@ export class AlunosController {
   }
 
   @Get()
-  async findAll(@Req() req, @Query() query: ListarAlunosQueryDto) {
+  findAll(@Req() req, @Query() query: ListarAlunosQueryDto): Promise<Alunos[]> {
     return this.alunosService.findAll({
       query,
       academiaId: req.user.academiaId,
@@ -38,7 +39,7 @@ export class AlunosController {
   }
 
   @Get(':id')
-  buscar(@Param('id') id: string) {
+  buscar(@Param('id') id: string): Promise<Alunos> {
     return this.alunosService.buscar(id);
   }
 
@@ -54,12 +55,12 @@ export class AlunosController {
   }
 
   @Put(':id')
-  put(@Param('id') id: string, @Body() body: any) {
+  put(@Param('id') id: string, @Body() body: any): Promise<Alunos> {
     return this.alunosService.put({ id, ...body });
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string) {
-    return this.alunosService.deletar(id);
+  delete(@Param('id') id: string): void {
+    this.alunosService.deletar(id);
   }
 }
