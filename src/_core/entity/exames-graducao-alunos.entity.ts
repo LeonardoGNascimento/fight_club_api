@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { Alunos } from './alunos.entity';
 import { ExamesGraduacao } from './exames-graduacao.entity';
-import { StatusExame } from '../enum/statusExame';
+import { StatusExame } from '../enum/status-exame';
 
 @Entity()
 export class ExamesGraducaoAlunos {
