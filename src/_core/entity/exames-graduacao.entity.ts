@@ -7,10 +7,14 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Academias } from './academias.entity'; // Relacionamento com Academias
 import { ExamesGraducaoAlunos } from './exames-graducao-alunos.entity'; // Relacionamento com AlunosExamesGraducao
 import { Modalidades } from './modalidades.entity'; // Relacionamento com Modalidades
 
+export enum StatusExame {
+  agendado = 'agendado',
+  emProgresso = 'emProgresso',
+  finalizado = 'finalizado',
+}
 @Entity()
 export class ExamesGraduacao {
   @PrimaryGeneratedColumn('uuid')
@@ -21,6 +25,9 @@ export class ExamesGraduacao {
 
   @Column({ type: 'datetime' })
   dataAgendamento: Date;
+
+  @Column({ type: 'enum', enum: StatusExame, default: StatusExame.agendado })
+  status: StatusExame;
 
   @DeleteDateColumn()
   deleted: Date;

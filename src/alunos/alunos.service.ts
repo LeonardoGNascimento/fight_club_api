@@ -152,8 +152,6 @@ export class AlunosService {
   }
 
   async atualizarGraduacao(atualizarGraduacaoDto: AtualizarGraduacaoDto) {
-    console.log(atualizarGraduacaoDto);
-
     const alunoModalidade = await this.alunosModalidadesRepository.findOne({
       where: {
         aluno: {
@@ -172,8 +170,6 @@ export class AlunosService {
     const graduacao = await this.graduacoesRepository.findOneBy({
       id: atualizarGraduacaoDto.graduacaoId,
     });
-
-    console.log(graduacao);
 
     this.alunosGraduacaoHistoricoRepository.save({
       instrutor: atualizarGraduacaoDto.instrutor,
