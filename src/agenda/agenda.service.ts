@@ -27,8 +27,7 @@ export class AgendaService {
   async buscarFrequencia(id: string) {
     const anoAtual = new Date();
     const mesAtual = getMonth(anoAtual) + 1
-    console.log(mesAtual);
-    
+
     const inicioAno = startOfYear(anoAtual);
     const fimAno = endOfYear(anoAtual);
 
