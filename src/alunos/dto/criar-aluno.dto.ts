@@ -8,10 +8,9 @@ export interface CreateAlunoDto {
   estado: string;
   rua: string;
   numero: string;
-  modalidades: string[];
+  modalidades?: string[];
   plano: string;
   telefone: string;
   academiaId: string;
-  clienteId: string;
-  user: User,
+  user?: User,
 }

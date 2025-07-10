@@ -4,38 +4,25 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { format, lastDayOfMonth } from 'date-fns';
-import { async } from 'src/_core/async';
 import { AlunosModalidades } from 'src/_core/entity/alunos-modalidades.entity';
+import { GraduacaoService } from 'src/graduacao/graduacao.service';
 import { Repository } from 'typeorm';
-import { AlunosGraducaoHistorico } from '../_core/entity/alunos-graducao-historico.entity';
 import { Alunos, Status } from '../_core/entity/alunos.entity';
-import { Cobrancas } from '../_core/entity/cobrancas.entity';
-import { ExamesGraducaoAlunos } from '../_core/entity/exames-graducao-alunos.entity';
-import { Graduacoes } from '../_core/entity/graduacoes.entity';
-import { Planos } from '../_core/entity/planos.entity';
+import { AlunosRepository } from './alunos.repository';
 import { AtualizarGraduacaoDto } from './dto/atualizar-graducao.dto';
 import { CreateAlunoDto } from './dto/criar-aluno.dto';
 import { ListarAlunosDto } from './dto/listar-alunos.dto';
 import { DetalhesAlunosQuery } from './query/detalhes-aluno.query';
-import { AlunosRepository } from './alunos.repository';
-import { PlanosService } from 'src/planos/planos.service';
 
 @Injectable()
 export class AlunosService {
   constructor(
-    @InjectRepository(ExamesGraducaoAlunos)
-    private alunosExameGraduacaoRepository: Repository<ExamesGraducaoAlunos>,
-    @InjectRepository(Graduacoes)
-    private graduacoesRepository: Repository<Graduacoes>,
-    @InjectRepository(AlunosGraducaoHistorico)
-    private alunosGraduacaoHistoricoRepository: Repository<AlunosGraducaoHistorico>,
     @InjectRepository(AlunosModalidades)
     private alunosModalidadesRepository: Repository<AlunosModalidades>,
     @InjectRepository(Alunos) private alunosRepository: Repository<Alunos>,
 
     private repository: AlunosRepository,
-    private planosService: PlanosService,
+    private graduacaoService: GraduacaoService,
   ) {}
 
   async buscar(id: string): Promise<Alunos> {
@@ -49,21 +36,11 @@ export class AlunosService {
 
     await Promise.all(
       aluno.alunosModalidades.map(async (item) => {
-        const [alunoGraduacaoHistorico] = await async<any[]>(
-          this.alunosGraduacaoHistoricoRepository
-            .createQueryBuilder('historico')
-            .innerJoinAndSelect(
-              Graduacoes,
-              'graduacoes',
-              'graduacoes.id = historico.graduacaoId',
-            )
-            .where('historico.alunoId = :alunoId', { alunoId: aluno.id })
-            .andWhere('historico.modalidadeId = :modalidadeId', {
-              modalidadeId: item.modalidade.id,
-            })
-            .orderBy('historico.dataHora', 'DESC')
-            .getRawMany(),
-        );
+        const alunoGraduacaoHistorico =
+          await this.graduacaoService.historicoAluno(
+            aluno.id,
+            item.modalidade.id,
+          );
 
         alunoGraduacaoHistorico.forEach((item2) =>
           retorno.addHistoricoGraduacao(
@@ -100,26 +77,22 @@ export class AlunosService {
       throw new BadRequestException('Aluno não treina essa modalidade');
     }
 
-    const graduacao = await this.graduacoesRepository.findOneBy({
-      id: atualizarGraduacaoDto.graduacaoId,
+    const graduacao = await this.graduacaoService.find({
+      where: {
+        id: atualizarGraduacaoDto.graduacaoId,
+      },
     });
 
-    this.alunosGraduacaoHistoricoRepository.save({
+    this.graduacaoService.historicoSalvar({
       instrutor: atualizarGraduacaoDto.instrutor,
       observacao: atualizarGraduacaoDto.observacao,
       grau:
         graduacao.qtdGraus >= atualizarGraduacaoDto.grau
           ? atualizarGraduacaoDto.grau
           : null,
-      graduacao: {
-        id: atualizarGraduacaoDto.graduacaoId,
-      },
-      aluno: {
-        id: atualizarGraduacaoDto.id,
-      },
-      modalidade: {
-        id: atualizarGraduacaoDto.modalidadeId,
-      },
+      graduacaoId: atualizarGraduacaoDto.graduacaoId,
+      alunoId: atualizarGraduacaoDto.id,
+      modalidadeId: atualizarGraduacaoDto.modalidadeId,
     });
 
     await this.alunosModalidadesRepository.update(
@@ -148,27 +121,24 @@ export class AlunosService {
     return true;
   }
 
-  async create({ academiaId, clienteId, user, ...body }: CreateAlunoDto) {
-    const plano = await this.planosService.buscar(body.plano)
-
-    const aluno = await this.alunosRepository.save({
-      academia: { id: String(academiaId) },
+  async create({ academiaId, user, ...body }: CreateAlunoDto) {
+    const aluno = await this.repository.criar({
+      academiaId: academiaId,
       nome: body.nome,
       cep: body.cep,
       cidade: body.cidade,
       cpf: body.cpf,
       estado: body.estado,
       numero: body.numero,
-      plano: { id: body.plano },
+      plano: body.plano,
       rua: body.rua,
       telefone: body.telefone,
-      status: plano.valor == '0' ? Status.ATIVO : Status.PENDENTE,
     });
 
     if (body.modalidades && body.modalidades.length > 0) {
       await Promise.all(
         body.modalidades.map(async (item) => {
-          const graduacao = await this.graduacoesRepository.findOne({
+          const graduacao = await this.graduacaoService.find({
             where: {
               modalidade: {
                 id: item,
@@ -191,15 +161,11 @@ export class AlunosService {
               : null,
           });
 
-          await this.alunosGraduacaoHistoricoRepository.save({
+          this.graduacaoService.historicoSalvar({
+            alunoId: aluno.id,
+            graduacaoId: graduacao?.id,
+            modalidadeId: item,
             grau: graduacao.qtdGraus > 0 ? 0 : null,
-            aluno: { id: aluno.id },
-            modalidade: {
-              id: item,
-            },
-            graduacao: {
-              id: graduacao?.id,
-            },
           });
         }),
       );
@@ -263,16 +229,16 @@ export class AlunosService {
       deleted: new Date(),
     });
 
-    await this.alunosExameGraduacaoRepository.update(
-      {
-        aluno: {
-          id: aluno.id,
-        },
-      },
-      {
-        deleted: new Date(),
-      },
-    );
+    // await this.alunosExameGraduacaoRepository.update(
+    //   {
+    //     aluno: {
+    //       id: aluno.id,
+    //     },
+    //   },
+    //   {
+    //     deleted: new Date(),
+    //   },
+    // );
 
     return deletedAluno;
   }
