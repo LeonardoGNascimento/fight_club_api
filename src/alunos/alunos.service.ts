@@ -207,7 +207,7 @@ export class AlunosService {
     }));
   }
 
-  async put({ id, ...body }: any) {
+  async put({ id, ...body }: Partial<Alunos>) {
     return await this.alunosRepository.save({
       id,
       ...body,

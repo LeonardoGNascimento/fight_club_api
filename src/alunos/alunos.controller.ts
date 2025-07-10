@@ -55,7 +55,7 @@ export class AlunosController {
   }
 
   @Put(':id')
-  put(@Param('id') id: string, @Body() body: any): Promise<Alunos> {
+  put(@Param('id') id: string, @Body() body: Partial<Alunos>): Promise<Alunos> {
     return this.alunosService.put({ id, ...body });
   }
 
