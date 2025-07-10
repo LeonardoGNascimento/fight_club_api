@@ -19,6 +19,17 @@ export class ExameService {
     });
   }
 
+  async buscar(id: string) {
+    return await this.examesGraduacaoRepository.findOne({
+      relations: {
+        modalidade: true,
+      },
+      where: {
+        id,
+      },
+    });
+  }
+
   async criar(body: any) {
     return await this.examesGraduacaoRepository.save({
       dataAgendamento: body.dataAgendamento,

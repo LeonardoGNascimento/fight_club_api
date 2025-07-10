@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ExameService } from './exame.service';
 
 @Controller('exames')
@@ -7,6 +7,11 @@ export class ExameController {
 
   @Get()
   listar() {
+    return this.service.listar();
+  }
+
+  @Get(':id')
+  buscar(@Param('id') id: string) {
     return this.service.listar();
   }
 

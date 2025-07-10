@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ModalidadesService } from './modalidades.service';
 import { ModalidadesController } from './modalidades.controller';
-import { CobrancaModule } from 'src/cobrancas/cobranca.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Alunos } from '../_core/entity/alunos.entity';
 import { CobrancasClienteItems } from '../_core/entity/cobrancas-cliente-items.entity';
@@ -24,7 +23,6 @@ import { Modalidades } from 'src/_core/entity/modalidades.entity';
       Cobrancas,
       Modalidades,
     ]),
-    CobrancaModule,
   ],
   controllers: [ModalidadesController],
   providers: [ModalidadesService],

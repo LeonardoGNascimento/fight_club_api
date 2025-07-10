@@ -3,14 +3,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CoreModule } from './_core/core.module';
-import { AbacatePayModule } from './abacatePay/acabatePay.module';
 import { AgendaModule } from './agenda/agenda.module';
 import { AlunosModule } from './alunos/alunos.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { ClienteModule } from './cliente/cliente.module';
-import { CobrancaModule } from './cobrancas/cobranca.module';
 import { GraduacaoModule } from './graduacao/graduacao.module';
 import { PrecoModule } from './precos/precos.module';
 import { TurmaModule } from './turmas/turma.module';
@@ -62,10 +60,8 @@ import { ProfessoresModule } from './professores/professores.module';
     }),
     CoreModule,
     ClienteModule,
-    CobrancaModule,
     AlunosModule,
     AgendaModule,
-    AbacatePayModule,
     PrecoModule,
     GraduacaoModule,
     TurmaModule,

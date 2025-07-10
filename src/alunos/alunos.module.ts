@@ -1,10 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AlunosService } from './alunos.service';
 import { AlunosController } from './alunos.controller';
-import { CobrancaModule } from 'src/cobrancas/cobranca.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Alunos } from '../_core/entity/alunos.entity';
-import { CobrancasClienteItems } from '../_core/entity/cobrancas-cliente-items.entity';
 import { AlunosGraducaoHistorico } from '../_core/entity/alunos-graducao-historico.entity';
 import { Graduacoes } from '../_core/entity/graduacoes.entity';
 import { Planos } from '../_core/entity/planos.entity';
@@ -12,20 +10,18 @@ import { ExamesGraducaoAlunos } from '../_core/entity/exames-graducao-alunos.ent
 import { Cobrancas } from '../_core/entity/cobrancas.entity';
 import { AlunosModalidades } from 'src/_core/entity/alunos-modalidades.entity';
 import { AlunosRepository } from './alunos.repository';
+import { PlanosModule } from 'src/planos/planos.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Alunos,
-      CobrancasClienteItems,
       AlunosGraducaoHistorico,
       Graduacoes,
-      Planos,
       ExamesGraducaoAlunos,
-      Cobrancas,
       AlunosModalidades,
     ]),
-    CobrancaModule,
+    PlanosModule,
   ],
   controllers: [AlunosController],
   providers: [AlunosService, AlunosRepository],

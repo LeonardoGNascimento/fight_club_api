@@ -11,8 +11,8 @@ import {
   Req,
 } from '@nestjs/common';
 import { AlunosService } from './alunos.service';
-import { AtualizarGraduacaoDto } from './dto/atualizarGraducao.dto';
-import { ListarAlunosQueryDto } from './dto/listarAlunos.dto';
+import { AtualizarGraduacaoDto } from './dto/atualizar-graducao.dto';
+import { ListarAlunosQueryDto } from './dto/listar-alunos.dto';
 import { GetUser } from 'src/_core/getUser.decorator';
 import { User } from 'src/@types/user';
 
@@ -35,11 +35,6 @@ export class AlunosController {
       query,
       academiaId: req.user.academiaId,
     });
-  }
-
-  @Get('contagem')
-  contagem(@Req() req) {
-    return this.alunosService.contagem(req.user.clienteId, req.user.academiaId);
   }
 
   @Get(':id')
@@ -65,11 +60,6 @@ export class AlunosController {
 
   @Delete(':id')
   delete(@Param('id') id: string) {
-    return this.alunosService.delete(id);
+    return this.alunosService.deletar(id);
   }
-
-  // @Get('modalidade/:id')
-  // async findAllByModalidade(@Param('id') id: string) {
-  //   return this.alunosService.getByModalidade(id);
-  // }
 }

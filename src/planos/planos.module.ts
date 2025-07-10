@@ -9,5 +9,6 @@ import { PlanosService } from './planos.service';
   imports: [TypeOrmModule.forFeature([Planos])],
   controllers: [PlanosController],
   providers: [PlanosService, PlanosRepository],
+  exports: [PlanosService],
 })
 export class PlanosModule {}

@@ -10,27 +10,22 @@ import { AlunosModalidades } from 'src/_core/entity/alunos-modalidades.entity';
 import { Repository } from 'typeorm';
 import { AlunosGraducaoHistorico } from '../_core/entity/alunos-graducao-historico.entity';
 import { Alunos, Status } from '../_core/entity/alunos.entity';
-import { CobrancasClienteItemsTipo } from '../_core/entity/cobrancas-cliente-items-tipo.enum';
-import { CobrancasClienteItems } from '../_core/entity/cobrancas-cliente-items.entity';
 import { Cobrancas } from '../_core/entity/cobrancas.entity';
 import { ExamesGraducaoAlunos } from '../_core/entity/exames-graducao-alunos.entity';
 import { Graduacoes } from '../_core/entity/graduacoes.entity';
 import { Planos } from '../_core/entity/planos.entity';
-import { AtualizarGraduacaoDto } from './dto/atualizarGraducao.dto';
-import { CreateAlunoDto } from './dto/createAluno.dto';
-import { ListarAlunosDto } from './dto/listarAlunos.dto';
-import { DetalhesAlunosQuery } from './query/detalhesAluno.query';
+import { AtualizarGraduacaoDto } from './dto/atualizar-graducao.dto';
+import { CreateAlunoDto } from './dto/criar-aluno.dto';
+import { ListarAlunosDto } from './dto/listar-alunos.dto';
+import { DetalhesAlunosQuery } from './query/detalhes-aluno.query';
 import { AlunosRepository } from './alunos.repository';
+import { PlanosService } from 'src/planos/planos.service';
 
 @Injectable()
 export class AlunosService {
   constructor(
-    @InjectRepository(Cobrancas)
-    private cobrancasRepository: Repository<Cobrancas>,
     @InjectRepository(ExamesGraducaoAlunos)
     private alunosExameGraduacaoRepository: Repository<ExamesGraducaoAlunos>,
-    @InjectRepository(Planos)
-    private planosRepository: Repository<Planos>,
     @InjectRepository(Graduacoes)
     private graduacoesRepository: Repository<Graduacoes>,
     @InjectRepository(AlunosGraducaoHistorico)
@@ -38,13 +33,12 @@ export class AlunosService {
     @InjectRepository(AlunosModalidades)
     private alunosModalidadesRepository: Repository<AlunosModalidades>,
     @InjectRepository(Alunos) private alunosRepository: Repository<Alunos>,
-    @InjectRepository(CobrancasClienteItems)
-    private cobrancaClienteItemRepository: Repository<CobrancasClienteItems>,
 
     private repository: AlunosRepository,
+    private planosService: PlanosService,
   ) {}
 
-  async buscar(id: string): Promise<any> {
+  async buscar(id: string): Promise<Alunos> {
     const aluno = await this.repository.buscar(id);
 
     if (!aluno) {
@@ -88,67 +82,6 @@ export class AlunosService {
     );
 
     return retorno;
-  }
-
-  async contagem(
-    clientesId: string,
-    academiaId: string,
-  ): Promise<{
-    alunosPagos: number;
-    alunosAtivos: number;
-    totalAlunos: number;
-  }> {
-    const dataAtual = new Date();
-    const mes: string = format(dataAtual, 'MM');
-    const anoAtual: string = format(dataAtual, 'yyyy');
-    const ultimoDia: Date = lastDayOfMonth(dataAtual);
-
-    const alunos: CobrancasClienteItems[] =
-      await this.cobrancaClienteItemRepository
-        .createQueryBuilder('cobrancaClienteItem')
-        .innerJoinAndSelect(
-          'cobrancaClienteItem.cobrancasCliente',
-          'cobrancasCliente',
-        )
-        .where('cobrancaClienteItem.tipo = :tipo', {
-          tipo: CobrancasClienteItemsTipo.ALUNO,
-        })
-        .andWhere('cobrancasCliente.clienteId = :clientesId', { clientesId })
-        .andWhere('cobrancasCliente.dataHora BETWEEN :startDate AND :endDate', {
-          startDate: `${anoAtual}-${mes}-01`,
-          endDate: ultimoDia,
-        })
-        .getMany();
-
-    const totalAlunos: number = await this.alunosRepository.count({
-      where: {
-        academia: {
-          id: academiaId,
-        },
-        deleted: null,
-      },
-    });
-
-    const alunosAtivos: number = await this.alunosRepository.count({
-      where: {
-        status: Status.ATIVO,
-        academia: {
-          id: academiaId,
-        },
-        deleted: null,
-      },
-    });
-
-    return {
-      alunosPagos: alunos.reduce(
-        (prev: 0, actual: CobrancasClienteItems): number => {
-          return prev + actual.qtd;
-        },
-        0,
-      ),
-      alunosAtivos,
-      totalAlunos,
-    };
   }
 
   async atualizarGraduacao(atualizarGraduacaoDto: AtualizarGraduacaoDto) {
@@ -216,16 +149,7 @@ export class AlunosService {
   }
 
   async create({ academiaId, clienteId, user, ...body }: CreateAlunoDto) {
-    const plano = await this.planosRepository.findOne({
-      where: {
-        id: body.plano,
-        deleted: null,
-      },
-    });
-
-    if (!plano) {
-      throw new NotFoundException({ error: 'Plano não encontrado' });
-    }
+    const plano = await this.planosService.buscar(body.plano)
 
     const aluno = await this.alunosRepository.save({
       academia: { id: String(academiaId) },
@@ -281,17 +205,6 @@ export class AlunosService {
       );
     }
 
-    // if (plano.valor !== '0') {
-    //   await this.cobrancaService.lancarCobrancasPorAluno(aluno.id);
-    // }
-
-    // if (contagem.alunosAtivos === contagem.alunosPagos) {
-    //   await this.cobrancaService.lancarValor({
-    //     clientesId: clienteId as string,
-    //     tipo: 'ALUNO',
-    //   });
-    // }
-
     return aluno;
   }
 
@@ -335,7 +248,7 @@ export class AlunosService {
     });
   }
 
-  async delete(id: string) {
+  async deletar(id: string) {
     const aluno = await this.alunosRepository.findOne({
       where: {
         id,
@@ -351,17 +264,6 @@ export class AlunosService {
     });
 
     await this.alunosExameGraduacaoRepository.update(
-      {
-        aluno: {
-          id: aluno.id,
-        },
-      },
-      {
-        deleted: new Date(),
-      },
-    );
-
-    await this.cobrancasRepository.update(
       {
         aluno: {
           id: aluno.id,
