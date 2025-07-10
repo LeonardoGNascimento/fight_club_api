@@ -3,8 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { async } from 'src/_core/async';
 import { Professores, Status } from 'src/_core/entity/professores.entity';
 import { Repository } from 'typeorm';
-import { CriarProfessorDto } from './dto/criarProfessor.dto';
-import { EditarProfessorDto } from './dto/editarProfessor.dto';
+import { CriarProfessorDto } from './dto/criar-professor.dto';
+import { EditarProfessorDto } from './dto/editar-professor.dto';
 
 @Injectable()
 export class ProfessoresRepository {

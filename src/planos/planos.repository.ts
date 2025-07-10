@@ -3,9 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { async } from 'src/_core/async';
 import { Planos } from 'src/_core/entity/planos.entity';
 import { Repository } from 'typeorm';
-import { CriarPlanoDto } from './dto/criarPlano.dto';
-import { ListarPlanosQuery } from './query/listarPlanos.query';
-import { EditarPlanoDto } from './dto/editarPlano.dto';
+import { CriarPlanoDto } from './dto/criar-plano.dto';
+import { ListarPlanosQuery } from './query/listar-planos.query';
+import { EditarPlanoDto } from './dto/editar-plano.dto';
 
 @Injectable()
 export class PlanosRepository {

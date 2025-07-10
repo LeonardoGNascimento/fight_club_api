@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
-import { CriarProfessorDto } from './dto/criarProfessor.dto';
-import { EditarProfessorDto } from './dto/editarProfessor.dto';
+import { CriarProfessorDto } from './dto/criar-professor.dto';
+import { EditarProfessorDto } from './dto/editar-professor.dto';
 import { ProfessoresRepository } from './professores.repository';
 
 @Injectable()

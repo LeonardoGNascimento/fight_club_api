@@ -2,7 +2,7 @@ import { Controller, Get, HttpException, Req } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AlunosGraducaoHistorico } from '../_core/entity/alunos-graducao-historico.entity';
-import { ListarGraduacoesQuery } from './query/listarGraduacoes.query';
+import { ListarGraduacoesQuery } from './query/listar-graduacoes.query';
 
 @Controller('graduacoes')
 export class GraducaoController {

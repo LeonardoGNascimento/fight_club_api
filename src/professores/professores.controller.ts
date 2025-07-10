@@ -10,8 +10,8 @@ import {
 import { GetUser } from 'src/_core/getUser.decorator';
 import { User } from 'src/@types/user';
 import { ProfessoresService } from './professores.service';
-import { CriarProfessorDto } from './dto/criarProfessor.dto';
-import { EditarProfessorDto } from './dto/editarProfessor.dto';
+import { CriarProfessorDto } from './dto/criar-professor.dto';
+import { EditarProfessorDto } from './dto/editar-professor.dto';
 
 @Controller('professores')
 export class ProfessoresController {

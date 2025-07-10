@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { PlanosRepository } from './planos.repository';
-import { CriarPlanoDto } from './dto/criarPlano.dto';
-import { EditarPlanoDto } from './dto/editarPlano.dto';
+import { CriarPlanoDto } from './dto/criar-plano.dto';
+import { EditarPlanoDto } from './dto/editar-plano.dto';
 
 @Injectable()
 export class PlanosService {

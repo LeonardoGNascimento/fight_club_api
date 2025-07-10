@@ -8,10 +8,10 @@ import {
   Put,
 } from '@nestjs/common';
 import { PlanosService } from './planos.service';
-import { CriarPlanoDto } from './dto/criarPlano.dto';
+import { CriarPlanoDto } from './dto/criar-plano.dto';
 import { GetUser } from 'src/_core/getUser.decorator';
 import { User } from 'src/@types/user';
-import { EditarPlanoDto } from './dto/editarPlano.dto';
+import { EditarPlanoDto } from './dto/editar-plano.dto';
 
 @Controller('planos')
 export class PlanosController {

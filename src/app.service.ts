@@ -381,7 +381,7 @@ export class AppService {
     const valor = await this.cobrancasClienteItemsRepository
       .createQueryBuilder('item')
       .select('SUM(item.valor)', 'sum') // Calculate the sum of `valor`
-      .innerJoin('item.CobrancasCliente', 'cobranca') // Join with CobrancasCliente to filter by clientesId
+      .innerJoin('item.cobrancasCliente', 'cobranca') // Join with CobrancasCliente to filter by clientesId
       .where('item.deleted IS NULL') // Ensure the item is not deleted
       .andWhere('cobranca.clientesId = :clientesId', { clientesId }) // Filter by clientesId
       .andWhere('item.dataHora >= :startDate', {
