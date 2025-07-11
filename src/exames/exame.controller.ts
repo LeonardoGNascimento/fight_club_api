@@ -12,7 +12,7 @@ export class ExameController {
 
   @Get(':id')
   buscar(@Param('id') id: string) {
-    return this.service.listar();
+    return this.service.buscar(id);
   }
 
   @Post()

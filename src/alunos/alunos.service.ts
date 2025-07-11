@@ -206,6 +206,18 @@ export class AlunosService {
     }));
   }
 
+  async listarPorModalidade(id: string) {
+    return await this.repository.listar({
+      where: {
+        alunosModalidades: {
+          modalidade: {
+            id,
+          },
+        },
+      },
+    });
+  }
+
   async put({ id, ...body }: Partial<Alunos>) {
     return await this.repository.salvar({
       id,

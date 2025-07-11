@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Graduacoes } from '../_core/entity/graduacoes.entity';
 import { Modalidades } from '../_core/entity/modalidades.entity';
+import { AlunosService } from 'src/alunos/alunos.service';
+import { Alunos } from 'src/_core/entity/alunos.entity';
 
 @Injectable()
 export class ModalidadesService {
@@ -11,6 +13,8 @@ export class ModalidadesService {
     private graduacoesRepository: Repository<Graduacoes>,
     @InjectRepository(Modalidades)
     private modalidadesRepository: Repository<Modalidades>,
+
+    private alunosService: AlunosService,
   ) {}
 
   async create({ nome, academiasId, graduacoes, id }: any) {
@@ -86,5 +90,9 @@ export class ModalidadesService {
         },
       },
     });
+  }
+
+  async listarAlunos(id: string): Promise<Alunos[]> {
+    return await this.alunosService.listarPorModalidade(id);
   }
 }

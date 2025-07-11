@@ -14,5 +14,6 @@ import { AlunosService } from './alunos.service';
   ],
   controllers: [AlunosController],
   providers: [AlunosService, AlunosRepository],
+  exports: [AlunosService],
 })
 export class AlunosModule {}
