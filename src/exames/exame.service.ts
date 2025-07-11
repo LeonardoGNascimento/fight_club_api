@@ -23,17 +23,22 @@ export class ExameService {
   }
 
   async buscar(id: string) {
-    return await this.examesGraduacaoRepository.findOne({
+    const exame = await this.examesGraduacaoRepository.findOne({
       relations: {
-        modalidade: true,
-        alunosExamesGraducoes: {
-          aluno: true,
+        modalidade: {
+          graduacoes: true,
+          alunosModalidades: {
+            aluno: true,
+            graduacao: true,
+          },
         },
       },
       where: {
         id,
       },
     });
+
+    return exame;
   }
 
   async criar(body: any) {
