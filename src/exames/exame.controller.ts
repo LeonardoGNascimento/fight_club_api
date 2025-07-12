@@ -1,5 +1,15 @@
-import { Body, Controller, Get, Param, Patch, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Res,
+} from '@nestjs/common';
 import { ExameService } from './exame.service';
+import { Response } from 'express';
 
 @Controller('exames')
 export class ExameController {
@@ -21,7 +31,14 @@ export class ExameController {
   }
 
   @Put(':id/concluir')
-  atualizar(@Param('id') exameId: string, @Body() body: any) {
-    return this.service.atualizar(exameId, body);
+  async atualizar(
+    @Param('id') exameId: string,
+    @Body() body: any,
+    @Res() res: Response,
+  ) {
+    const buffer = await this.service.atualizar(exameId, body);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=relatorio.pdf');
+    res.send(buffer);
   }
 }

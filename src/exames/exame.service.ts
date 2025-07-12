@@ -1,14 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as PdfPrinter from 'pdfmake';
 import {
   ExamesGraduacao,
   StatusExame,
 } from 'src/_core/entity/exames-graduacao.entity';
 import { ExamesGraducaoAlunos } from 'src/_core/entity/exames-graducao-alunos.entity';
-import { Modalidades } from 'src/_core/entity/modalidades.entity';
 import { AlunosService } from 'src/alunos/alunos.service';
 import { ModalidadesService } from 'src/modalidades/modalidades.service';
 import { Repository } from 'typeorm';
+import * as puppeteer from 'puppeteer';
 
 @Injectable()
 export class ExameService {
@@ -20,6 +21,95 @@ export class ExameService {
     private alunosService: AlunosService,
     private modalidadeService: ModalidadesService,
   ) {}
+
+  gerarHtmlRelatorio(alunos: any[]) {
+    const rows = alunos
+      .map(
+        (a) => `
+      <tr>
+        <td>${a.aluno}</td>
+        <td>${a.graduacaoAtual.nome}</td>
+        <td>${a.graduacaoPretendida.nome}</td>
+        <td class="${a.status === 'aprovado' ? 'aprovado' : 'reprovado'}">${a.status}</td>
+      </tr>
+    `,
+      )
+      .join('');
+
+    return `
+  <html>
+    <head>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 40px;
+        }
+        h1 {
+          text-align: center;
+          margin-bottom: 40px;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        th, td {
+          padding: 12px;
+          border: 1px solid #ccc;
+          text-align: left;
+        }
+        th {
+          background-color: #f5f5f5;
+        }
+        .aprovado {
+          color: green;
+          font-weight: bold;
+        }
+        .reprovado {
+          color: red;
+          font-weight: bold;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>Relatório de Exame de Faixa Karatê-do para a vida</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Nome do Aluno</th>
+            <th>Graduação Atual</th>
+            <th>Graduação Pretendida</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    </body>
+  </html>
+  `;
+  }
+
+  async gerarPdf(alunos: any) {
+    const html = this.gerarHtmlRelatorio(alunos);
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '20mm',
+        bottom: '20mm',
+        left: '10mm',
+        right: '10mm',
+      },
+    });
+
+    await browser.close();
+    return pdfBuffer;
+  }
 
   async listar() {
     return await this.examesGraduacaoRepository.find({
@@ -123,6 +213,7 @@ export class ExameService {
 
       const exameAluno = await this.examesGraducaoAlunosRepository.findOne({
         relations: {
+          aluno: true,
           graduacaoAtual: true,
           graduacaoPretendida: {
             modalidade: true,
@@ -150,7 +241,10 @@ export class ExameService {
       const exameAlunoAtualizado =
         await this.examesGraducaoAlunosRepository.save(exameAluno);
 
-      resultados.push(exameAlunoAtualizado);
+      resultados.push({
+        ...exameAlunoAtualizado,
+        aluno: exameAluno.aluno.nome,
+      });
     }
 
     await this.examesGraduacaoRepository.update(
@@ -160,6 +254,6 @@ export class ExameService {
       },
     );
 
-    return resultados;
+    return await this.gerarPdf(resultados);
   }
 }
