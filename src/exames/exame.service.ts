@@ -220,7 +220,7 @@ export class ExameService {
     const resultados = [];
 
     for (const alunoData of body.alunos) {
-      const { alunoId, status } = alunoData;
+      const { alunoId, status, kata, kihon, kumite } = alunoData;
 
       if (!alunoId || !status) {
         throw new Error('Aluno e status são obrigatórios para cada aluno.');
@@ -253,6 +253,10 @@ export class ExameService {
       }
 
       exameAluno.status = status;
+      exameAluno.kata = kata || exameAluno.kata;
+      exameAluno.kihon = kihon || exameAluno.kihon;
+      exameAluno.kumite = kumite || exameAluno.kumite;
+
       const exameAlunoAtualizado =
         await this.examesGraducaoAlunosRepository.save(exameAluno);
 
