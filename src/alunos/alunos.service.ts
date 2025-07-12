@@ -24,7 +24,7 @@ export class AlunosService {
     private graduacaoService: GraduacaoService,
   ) {}
 
-  async buscar(id: string): Promise<Alunos> {
+  async buscar(id: string): Promise<DetalhesAlunosQuery> {
     const aluno = await this.repository.buscar(id);
 
     if (!aluno) {

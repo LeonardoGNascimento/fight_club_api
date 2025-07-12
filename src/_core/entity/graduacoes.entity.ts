@@ -10,6 +10,7 @@ import {
 import { AlunosGraducaoHistorico } from './alunos-graducao-historico.entity'; // Relacionamento com Modalidades
 import { Modalidades } from './modalidades.entity';
 import { AlunosModalidades } from './alunos-modalidades.entity';
+import { ExamesGraducaoAlunos } from './exames-graducao-alunos.entity';
 
 @Entity()
 export class Graduacoes {
@@ -34,9 +35,27 @@ export class Graduacoes {
   @ManyToOne(() => Modalidades, (modalidade) => modalidade.graduacoes)
   modalidade: Modalidades;
 
-  @OneToMany(() => AlunosGraducaoHistorico, (alunosGraducao) => alunosGraducao.graduacao)
+  @OneToMany(
+    () => AlunosGraducaoHistorico,
+    (alunosGraducao) => alunosGraducao.graduacao,
+  )
   alunosGraducoes: AlunosGraducaoHistorico[];
 
-  @OneToMany(() => AlunosModalidades, (alunosGraducao) => alunosGraducao.graduacao)
+  @OneToMany(
+    () => AlunosModalidades,
+    (alunosGraducao) => alunosGraducao.graduacao,
+  )
   alunosModalidades: AlunosModalidades[];
+
+  @OneToMany(
+    () => ExamesGraducaoAlunos,
+    (alunosGraducao) => alunosGraducao.graduacaoAtual,
+  )
+  exameGraduacaoAtual: ExamesGraducaoAlunos[];
+
+  @OneToMany(
+    () => ExamesGraducaoAlunos,
+    (alunosGraducao) => alunosGraducao.graduacaoPretendida,
+  )
+  exameGraduacaoPretendida: ExamesGraducaoAlunos[];
 }

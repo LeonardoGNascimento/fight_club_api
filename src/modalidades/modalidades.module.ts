@@ -28,5 +28,6 @@ import { ModalidadesService } from './modalidades.service';
   ],
   controllers: [ModalidadesController],
   providers: [ModalidadesService],
+  exports: [ModalidadesService],
 })
 export class ModalidadesModule {}

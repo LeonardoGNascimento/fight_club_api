@@ -21,7 +21,7 @@ export class ExameController {
   }
 
   @Put(':id/concluir')
-  atualizar(@Param('exameId') exameId: string, @Body() body: any) {
+  atualizar(@Param('id') exameId: string, @Body() body: any) {
     return this.service.atualizar(exameId, body);
   }
 }
