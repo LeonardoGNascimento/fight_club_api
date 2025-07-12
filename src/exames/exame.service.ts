@@ -30,7 +30,7 @@ export class ExameService {
         <td>${a.aluno}</td>
         <td>${a.graduacaoAtual.nome}</td>
         <td>${a.graduacaoPretendida.nome}</td>
-        <td class="${a.status === 'aprovado' ? 'aprovado' : 'reprovado'}">${a.status}</td>
+        <td class="${a.status === 'aprovado' ? 'aprovado' : 'reprovado'}">${a.status.toUpperCase()}</td>
       </tr>
     `,
       )
