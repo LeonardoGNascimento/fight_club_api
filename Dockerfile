@@ -1,14 +1,13 @@
+# Etapa de build
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Instala compatibilidade com dependências nativas
+# Instala compatibilidade para libs nativas
 RUN apk add --no-cache libc6-compat
 
-# Copia apenas os arquivos necessários primeiro (cache mais eficiente)
+# Copia e instala dependências
 COPY package.json package-lock.json ./
-
-# Instala dependências de forma limpa usando o lockfile
 RUN npm ci --legacy-peer-deps
 
 # Copia o restante do código
@@ -17,10 +16,23 @@ COPY . .
 # Compila o projeto
 RUN npm run build
 
-# Fase de execução
+# Etapa de execução
 FROM node:22-alpine AS runner
 
-RUN npx puppeteer browsers install chrome
+# 🔧 Instala dependências necessárias para o Chromium funcionar no Alpine
+RUN apk add --no-cache \
+  chromium \
+  nss \
+  freetype \
+  harfbuzz \
+  ca-certificates \
+  ttf-freefont \
+  nodejs \
+  dumb-init \
+  bash
+
+# Define variáveis para Puppeteer usar o Chromium do sistema
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 WORKDIR /app
 
@@ -29,4 +41,5 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
 
+# Usa Puppeteer com o Chromium instalado no sistema
 CMD ["node", "dist/main.js"]
