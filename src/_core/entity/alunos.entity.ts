@@ -30,29 +30,29 @@ export class Alunos {
   @CreateDateColumn()
   dataHora: Date;
 
-  @Column()
+  @Column({ nullable: true })
   nome: string;
 
-  @Column()
-  cpf: string;
+  @Column({ nullable: true })
+  cpf?: string;
 
-  @Column()
-  rua: string;
+  @Column({ nullable: true })
+  rua?: string;
 
-  @Column()
-  cidade: string;
+  @Column({ nullable: true })
+  cidade?: string;
 
-  @Column()
-  estado: string;
+  @Column({ nullable: true })
+  estado?: string;
 
-  @Column()
-  cep: string;
+  @Column({ nullable: true })
+  cep?: string;
 
-  @Column()
-  numero: string;
+  @Column({ nullable: true })
+  numero?: string;
 
-  @Column()
-  telefone: string;
+  @Column({ nullable: true })
+  telefone?: string;
 
   @Column({ type: 'enum', enum: Status, default: Status.ATIVO })
   status: Status;
@@ -72,10 +72,16 @@ export class Alunos {
   )
   alunosExamesGraducoes: ExamesGraducaoAlunos[];
 
-  @OneToMany(() => AlunosGraducaoHistorico, (alunoGraducao) => alunoGraducao.aluno)
+  @OneToMany(
+    () => AlunosGraducaoHistorico,
+    (alunoGraducao) => alunoGraducao.aluno,
+  )
   alunosGraducaoHistorico: AlunosGraducaoHistorico[];
 
-  @OneToMany(() => AlunosModalidades, (alunosModalidades) => alunosModalidades.aluno)
+  @OneToMany(
+    () => AlunosModalidades,
+    (alunosModalidades) => alunosModalidades.aluno,
+  )
   alunosModalidades: AlunosModalidades[];
 
   @OneToMany(() => Cobrancas, (cobranca) => cobranca.aluno)
