@@ -40,6 +40,9 @@ export class ExameService {
   <html>
     <head>
       <style>
+        .flex {
+          display: flex;
+        }
         body {
           font-family: Arial, sans-serif;
           margin: 40px;
@@ -71,7 +74,11 @@ export class ExameService {
       </style>
     </head>
     <body>
-      <h1>Relatório de Exame de Faixa Karatê-do para a vida</h1>
+      <div class="flex">
+        <h1>Relatório de Exame de Faixa Karatê-do para a vida</h1>
+        <img src='http://rotuclin-minio-bf124c-69-62-86-212.traefik.me:9000/public/logo_projeto.png'/>
+      </div>
+
       <table>
         <thead>
           <tr>
