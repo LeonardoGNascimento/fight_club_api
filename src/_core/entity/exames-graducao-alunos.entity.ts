@@ -22,6 +22,15 @@ export class ExamesGraducaoAlunos {
   @Column({ type: 'enum', enum: StatusExame, default: StatusExame.emAndamento })
   status: StatusExame;
 
+  @Column({ type: 'text', nullable: true })
+  kata?: string;
+
+  @Column({ type: 'text', nullable: true })
+  kihon?: string;
+
+  @Column({ type: 'text', nullable: true })
+  kumite?: string;
+
   @ManyToOne(
     () => Graduacoes,
     (exameGraduacao) => exameGraduacao.exameGraduacaoAtual,
