@@ -20,6 +20,8 @@ RUN npm run build
 # Fase de execução
 FROM node:22-alpine AS runner
 
+RUN npx puppeteer browsers install chrome
+
 WORKDIR /app
 
 # Copia apenas o necessário da fase de build
