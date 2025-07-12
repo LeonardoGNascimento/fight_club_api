@@ -61,12 +61,15 @@ export class ExameService {
       },
     });
 
-    if (body.alunos && Array.isArray(body.alunos)) {
+    const alunos = await this.modalidadeService.listarAlunos(body.modalidadeId);
+
+    if (alunos && Array.isArray(alunos)) {
       await Promise.all(
-        body.alunos.map(async (item: { value: string }) => {
-          const aluno = await this.alunosService.buscar(item.value);
+        alunos.map(async (item) => {
+          const aluno = await this.alunosService.buscar(item.id);
+
           const modalidade = aluno.modalidades.find(
-            (item) => item.modalidade.id === body.modalidadeId,
+            (item2) => item2.modalidade.id === body.modalidadeId,
           );
 
           const graduacaoAtual = modalidade.graduacao.id;
@@ -74,18 +77,18 @@ export class ExameService {
             body.modalidadeId,
           );
 
-          const graduacaoPretendida = modalidadeAtual.graduacoes.find(
-            (item) =>
-              item.ordem ===
-              modalidadeAtual.graduacoes.find(
-                (item) => item.id === graduacaoAtual,
-              ).ordem +
-                1,
-          ).id;
+          const graduacaoPretendida =
+            modalidadeAtual.graduacoes.find(
+              (item) => item.ordem === modalidade.graduacao.ordem + 1,
+            )?.id || null;
+
+          if (!graduacaoPretendida) {
+            return;
+          }
 
           return this.examesGraducaoAlunosRepository.save({
             aluno: {
-              id: item.value,
+              id: aluno.id,
             },
             examesGraduacao: {
               id: exame.id,
@@ -150,8 +153,6 @@ export class ExameService {
       resultados.push(exameAlunoAtualizado);
     }
 
-    console.log(exameId);
-    
     await this.examesGraduacaoRepository.update(
       { id: exameId },
       {
