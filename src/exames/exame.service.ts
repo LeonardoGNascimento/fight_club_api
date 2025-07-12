@@ -68,7 +68,7 @@ export class ExameService {
           font-weight: bold;
         }
         img {
-          width: 50%
+          width: 30%
         }
         .reprovado {
           color: red;
