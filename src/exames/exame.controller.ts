@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Put } from '@nestjs/common';
 import { ExameService } from './exame.service';
 
 @Controller('exames')
@@ -18,5 +18,10 @@ export class ExameController {
   @Post()
   criar(@Body() body: any) {
     return this.service.criar(body);
+  }
+
+  @Put(':id/concluir')
+  atualizar(@Param('exameId') exameId: string, @Body() body: any) {
+    return this.service.atualizar(exameId, body);
   }
 }
